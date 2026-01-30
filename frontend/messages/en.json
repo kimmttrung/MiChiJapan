@@ -1,0 +1,18 @@
+{
+    "Navbar": {
+        "destinations": "Destinations",
+        "interests": "Interests",
+        "events": "Events",
+        "planning": "Planning",
+        "ai_trip": "AI Trip",
+        "search": "Search...",
+        "login": "Login"
+    },
+    "Hero": {
+        "badge": "Powered by Google Gemini 1.5",
+        "title": "Discover Vietnam your own way.",
+        "subtitle": "Smart travel planning system combining local culture with AI technology.",
+        "placeholder": "Where do you want to go? Let AI plan it...",
+        "btn_plan": "Plan Trip"
+    }
+}

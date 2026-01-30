@@ -1,0 +1,18 @@
+{
+    "Navbar": {
+        "destinations": "目的地",
+        "interests": "興味",
+        "events": "イベント",
+        "planning": "計画",
+        "ai_trip": "AIトラベル",
+        "search": "検索...",
+        "login": "ログイン"
+    },
+    "Hero": {
+        "badge": "Google Gemini 1.5 搭載",
+        "title": "あなただけのベトナムを発見。",
+        "subtitle": "現地の文化とAI技術を融合させたスマートな旅行計画システム。",
+        "placeholder": "どこに行きたいですか？ AIにお任せください...",
+        "btn_plan": "プラン作成"
+    }
+}

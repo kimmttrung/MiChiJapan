@@ -1,0 +1,18 @@
+{
+    "Navbar": {
+        "destinations": "Điểm đến",
+        "interests": "Sở thích",
+        "events": "Sự kiện",
+        "planning": "Kế hoạch",
+        "ai_trip": "AI Chuyến đi",
+        "search": "Tìm kiếm...",
+        "login": "Đăng nhập"
+    },
+    "Hero": {
+        "badge": "Hỗ trợ bởi Google Gemini 1.5",
+        "title": "Khám phá Việt Nam theo cách riêng.",
+        "subtitle": "Hệ thống lập kế hoạch du lịch thông minh, kết hợp tinh tế giữa văn hóa bản địa và công nghệ AI.",
+        "placeholder": "Bạn muốn đi đâu? Hãy để AI thiết lập lộ trình...",
+        "btn_plan": "Lên lịch trình"
+    }
+}
