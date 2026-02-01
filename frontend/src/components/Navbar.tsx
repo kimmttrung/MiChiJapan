@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useLocale } from 'next-intl'
 import { useTransition } from 'react'
 import { useTranslations } from 'next-intl';
+import { ROUTES } from "../lib/routes";
 
 export default function Navbar() {
     const t = useTranslations('Navbar');
@@ -87,10 +88,14 @@ export default function Navbar() {
                         />
                     </div>
 
-                    <button className="flex items-center gap-2 px-5 py-2.5 bg-brand-dark text-white text-sm font-medium rounded-full hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl">
+                    <Link
+                        // href={`/${locale}/login`}
+                        href={`/${locale}${ROUTES.LOGIN}`}
+                        className="flex items-center gap-2 px-5 py-2.5 bg-brand-dark text-white text-sm font-medium rounded-full hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl"
+                    >
                         <User size={16} />
                         {t('login')}
-                    </button>
+                    </Link>
                 </div>
             </div>
         </nav>
