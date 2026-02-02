@@ -14,5 +14,19 @@
         "subtitle": "Hệ thống lập kế hoạch du lịch thông minh, kết hợp tinh tế giữa văn hóa bản địa và công nghệ AI.",
         "placeholder": "Bạn muốn đi đâu? Hãy để AI thiết lập lộ trình...",
         "btn_plan": "Lên lịch trình"
+    },
+    "AdminSidebar": {
+        "dashboard": "Tổng quan",
+        "users": "Người dùng",
+        "regions": "Khu vực",
+        "hotels": "Khách sạn",
+        "restaurants": "Nhà hàng",
+        "trips": "Lịch trình AI",
+        "settings": "Cài đặt",
+        "logout": "Đăng xuất"
+    },
+    "AdminDashboard": {
+        "welcome": "Xin chào quản trị viên",
+        "revenue": "Doanh thu"
     }
 }

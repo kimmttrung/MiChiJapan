@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, Text, Boolean, TIMESTAMP
+from sqlalchemy import Column, Integer, String, Text, Boolean, TIMESTAMP,  Float, ForeignKey
 from sqlalchemy.sql import func
 from app.core.database import Base
+from sqlalchemy.orm import relationship
 
 class User(Base):
     __tablename__ = "users"
@@ -20,3 +21,28 @@ class User(Base):
 
     created_at = Column(TIMESTAMP, server_default=func.now())
     updated_at = Column(TIMESTAMP, server_default=func.now())
+
+# --- Region Model ---
+class Region(Base):
+    __tablename__ = "regions"
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255), nullable=False)
+    description = Column(Text)
+    cover_image = Column(Text)
+    latitude = Column(Float)
+    longitude = Column(Float)
+    
+    hotels = relationship("Hotel", back_populates="region")
+
+# --- Hotel Model ---
+class Hotel(Base):
+    __tablename__ = "hotels"
+    id = Column(Integer, primary_key=True)
+    region_id = Column(Integer, ForeignKey("regions.id"))
+    name = Column(String(255), nullable=False)
+    address = Column(Text)
+    price_per_night = Column(Integer)
+    rating = Column(Float)
+    is_active = Column(Boolean, default=True)
+    
+    region = relationship("Region", back_populates="hotels")

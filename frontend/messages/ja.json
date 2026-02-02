@@ -14,5 +14,19 @@
         "subtitle": "現地の文化とAI技術を融合させたスマートな旅行計画システム。",
         "placeholder": "どこに行きたいですか？ AIにお任せください...",
         "btn_plan": "プラン作成"
+    },
+    "AdminSidebar": {
+        "dashboard": "ダッシュボード",
+        "users": "ユーザー管理",
+        "regions": "地域・エリア",
+        "hotels": "宿泊施設",
+        "restaurants": "飲食店",
+        "trips": "AI旅行プラン",
+        "settings": "設定",
+        "logout": "ログアウト"
+    },
+    "AdminDashboard": {
+        "welcome": "ようこそ、管理者様",
+        "revenue": "総売上"
     }
 }

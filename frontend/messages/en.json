@@ -14,5 +14,19 @@
         "subtitle": "Smart travel planning system combining local culture with AI technology.",
         "placeholder": "Where do you want to go? Let AI plan it...",
         "btn_plan": "Plan Trip"
+    },
+    "AdminSidebar": {
+        "dashboard": "Dashboard",
+        "users": "Users",
+        "regions": "Regions",
+        "hotels": "Hotels",
+        "restaurants": "Restaurants",
+        "trips": "AI Trips",
+        "settings": "Settings",
+        "logout": "Logout"
+    },
+    "AdminDashboard": {
+        "welcome": "Welcome Admin",
+        "revenue": "Revenue"
     }
 }

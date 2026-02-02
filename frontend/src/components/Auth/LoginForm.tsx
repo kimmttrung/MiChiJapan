@@ -3,13 +3,16 @@ import { useState } from "react";
 import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/src/context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
+import { useLocale } from 'next-intl'
+import { ROUTES } from "@/src/lib/routes";
 
 export default function LoginForm() {
     const { login } = useAuth();
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState({ email: "", password: "" });
+    const locale = useLocale()
 
     const router = useRouter();
 
@@ -30,8 +33,12 @@ export default function LoginForm() {
                 toast.success("Đăng nhập thành công!");
                 localStorage.setItem("michi_token", data.access_token);
                 login(data.access_token, data.user);
-                // Chuyển hướng sau khi thành công
-                router.push("/");
+                // --- LOGIC ĐIỀU HƯỚNG QUAN TRỌNG ---
+                if (data.user.role === 'admin') {
+                    router.push(`/${locale}${ROUTES.ADMIN}`); // Chuyển sang trang Admin
+                } else {
+                    router.push("/"); // User thường về trang chủ
+                }
                 router.refresh();
             } else {
                 toast.error(data.detail || "Đăng nhập thất bại");

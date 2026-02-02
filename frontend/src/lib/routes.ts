@@ -4,4 +4,5 @@ export const ROUTES = {
     REGISTER: '/register',
     TRIP_PLANNER: '/ai-trip-planner',
     DESTINATIONS: '/destinations',
+    ADMIN: '/admin'
 };

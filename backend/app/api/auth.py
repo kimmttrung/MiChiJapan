@@ -28,9 +28,11 @@ async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
         "access_token": token,
         "token_type": "bearer",
         "user": {
+            "id": user.id,
             "full_name": user.full_name,
             "email": user.email,
-            "role": user.role
+            "role": user.role,
+            "avatar_url": user.avatar_url
         }
     }
 

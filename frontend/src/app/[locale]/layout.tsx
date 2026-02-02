@@ -36,7 +36,6 @@ export default async function RootLayout({
             {children}
             <Toaster position="top-center" richColors />
           </AuthProvider>
-
         </NextIntlClientProvider>
       </body>
     </html>
