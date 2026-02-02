@@ -1,14 +1,17 @@
 // src/components/Navbar.tsx
 "use client";
 import Link from "next/link";
-import { Search, Mountain, Flower, User } from "lucide-react"; // Icon đại diện
+import { Search, Mountain, Flower, User, ChevronDown, UserIcon, Settings, LogOut } from "lucide-react"; // Icon đại diện
 import { usePathname, useRouter } from 'next/navigation'
 import { useLocale } from 'next-intl'
-import { useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl';
 import { ROUTES } from "../lib/routes";
+import { useAuth } from "../context/AuthContext";
 
 export default function Navbar() {
+    const { user, logout } = useAuth(); // Lấy thông tin user
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const t = useTranslations('Navbar');
     const locale = useLocale()
     const router = useRouter()
@@ -88,14 +91,59 @@ export default function Navbar() {
                         />
                     </div>
 
-                    <Link
-                        // href={`/${locale}/login`}
-                        href={`/${locale}${ROUTES.LOGIN}`}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-brand-dark text-white text-sm font-medium rounded-full hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl"
-                    >
-                        <User size={16} />
-                        {t('login')}
-                    </Link>
+                    {user ? (
+                        /* GIAO DIỆN KHI ĐÃ ĐĂNG NHẬP */
+                        <div className="relative">
+                            <button
+                                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                className="flex items-center gap-2 p-1 pr-3 bg-gray-50 border border-gray-200 rounded-full hover:bg-gray-100 transition-all"
+                            >
+                                {/* Avatar tròn */}
+                                <div className="w-9 h-9 bg-brand-dark rounded-full flex items-center justify-center text-white font-bold text-sm overflow-hidden shadow-inner">
+                                    {user.avatar_url ? (
+                                        <img src={user.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+                                    ) : (
+                                        user.full_name.charAt(0).toUpperCase()
+                                    )}
+                                </div>
+                                <span className="text-sm font-semibold text-gray-700 hidden lg:block">
+                                    {user.full_name.split(' ').slice(-1)} {/* Chỉ hiện tên cuối */}
+                                </span>
+                                <ChevronDown size={14} className={`text-gray-400 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            {/* Dropdown Menu Nhật Bản Minimalist */}
+                            {isMenuOpen && (
+                                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 rounded-2xl shadow-xl py-2 z-50 animate-in fade-in zoom-in duration-200">
+                                    <div className="px-4 py-2 border-b border-gray-50 mb-1">
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Tài khoản</p>
+                                        <p className="text-xs text-gray-600 truncate">{user.email}</p>
+                                    </div>
+                                    <Link href="#" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                                        <UserIcon size={16} /> Trang cá nhân
+                                    </Link>
+                                    <Link href="#" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                                        <Settings size={16} /> Cài đặt
+                                    </Link>
+                                    <button
+                                        onClick={logout}
+                                        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition border-t border-gray-50 mt-1"
+                                    >
+                                        <LogOut size={16} /> Đăng xuất
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        /* GIAO DIỆN KHI CHƯA ĐĂNG NHẬP */
+                        <Link
+                            href={`/${locale}${ROUTES.LOGIN}`}
+                            className="flex items-center gap-2 px-5 py-2.5 bg-brand-dark text-white text-sm font-medium rounded-full hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl"
+                        >
+                            <UserIcon size={16} />
+                            {t('login')}
+                        </Link>
+                    )}
                 </div>
             </div>
         </nav>

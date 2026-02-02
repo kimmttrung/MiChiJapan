@@ -3,6 +3,8 @@ import { Inter, Noto_Sans_JP } from 'next/font/google'
 import '../globals.css'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
+import { Toaster } from 'sonner';
+import { AuthProvider } from "@/src/context/AuthContext"
 
 const inter = Inter({ subsets: ['latin', 'vietnamese'], variable: '--font-inter' })
 const notojp = Noto_Sans_JP({
@@ -30,7 +32,11 @@ export default async function RootLayout({
     <html lang={locale}>
       <body className={`${inter.variable} ${notojp.variable} font-sans`}>
         <NextIntlClientProvider messages={messages}>
-          {children}
+          <AuthProvider>
+            {children}
+            <Toaster position="top-center" richColors />
+          </AuthProvider>
+
         </NextIntlClientProvider>
       </body>
     </html>
