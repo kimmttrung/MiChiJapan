@@ -27,6 +27,13 @@ export default function Navbar() {
             router.replace(segments.join('/'))
         })
     }
+    const handleLogout = () => {
+        // Tạo đường dẫn: /vi/login hoặc /en/login
+        const loginPath = `/${locale}${ROUTES.LOGIN}`;
+
+        // Gọi hàm logout và truyền đường dẫn vào
+        logout(loginPath);
+    };
     return (
         <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 transition-all">
             <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
@@ -107,7 +114,7 @@ export default function Navbar() {
                                     )}
                                 </div>
                                 <span className="text-sm font-semibold text-gray-700 hidden lg:block">
-                                    {user.full_name.split(' ').slice(-1)} {/* Chỉ hiện tên cuối */}
+                                    {user.full_name} {/* Chỉ hiện tên cuối */}
                                 </span>
                                 <ChevronDown size={14} className={`text-gray-400 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`} />
                             </button>
@@ -119,14 +126,16 @@ export default function Navbar() {
                                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Tài khoản</p>
                                         <p className="text-xs text-gray-600 truncate">{user.email}</p>
                                     </div>
-                                    <Link href="#" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
+                                    <Link
+                                        href={`/${locale}/user/profile`}
+                                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
                                         <UserIcon size={16} /> Trang cá nhân
                                     </Link>
                                     <Link href="#" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition">
                                         <Settings size={16} /> Cài đặt
                                     </Link>
                                     <button
-                                        onClick={logout}
+                                        onClick={handleLogout}
                                         className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition border-t border-gray-50 mt-1"
                                     >
                                         <LogOut size={16} /> Đăng xuất

@@ -32,7 +32,10 @@ async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
             "full_name": user.full_name,
             "email": user.email,
             "role": user.role,
-            "avatar_url": user.avatar_url
+            "avatar_url": user.avatar_url,
+            "phone": user.phone,
+            "bio": user.bio,
+            "address": user.address
         }
     }
 

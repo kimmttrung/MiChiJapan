@@ -1,30 +1,35 @@
 "use client";
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
+// Mở rộng interface User để bao gồm đầy đủ các trường bạn dùng
 interface User {
-    full_name: string;
+    id: number;
     email: string;
+    full_name: string;
     role: string;
     avatar_url?: string;
-    id?: number; // Thêm id nếu cần
+    phone?: string;
+    address?: string;
+    bio?: string;
+    created_at?: string;
+    // ... các trường khác nếu có
 }
 
 interface AuthContextType {
     user: User | null;
     login: (token: string, userData: User) => void;
-    logout: () => void;
-    isLoading: boolean; // Thêm trạng thái loading để UI biết đường xử lý
+    logout: (redirectPath?: string) => void;
+    updateUser: (data: Partial<User>) => void; // Hàm mới để cập nhật user
+    isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    // Khởi tạo user là null để khớp với Server Side Rendering (tránh lỗi hydration)
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Logic này chỉ chạy 1 lần duy nhất ở phía Client sau khi render xong
         const initializeAuth = () => {
             try {
                 const savedUser = localStorage.getItem("michi_user");
@@ -51,17 +56,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(userData);
     };
 
-    const logout = () => {
+    const logout = (redirectPath?: string) => {
         localStorage.removeItem("michi_token");
         localStorage.removeItem("michi_user");
         setUser(null);
-        window.location.href = "/login"; // Dùng href để force reload trang hoàn toàn
+        window.location.href = redirectPath || "/login";
     };
 
-    // QUAN TRỌNG: Luôn return Provider, không được return null.
-    // Dù chưa load xong (isLoading = true), Context vẫn phải tồn tại.
+    // --- HÀM UPDATE USER MỚI ---
+    // Nhận vào 'data' là một phần của User (Partial<User>)
+    // Nghĩa là bạn có thể chỉ truyền { full_name: "A" } mà không cần truyền hết
+    const updateUser = (data: Partial<User>) => {
+        if (!user) return; // Nếu chưa đăng nhập thì không làm gì
+
+        // Gộp dữ liệu cũ với dữ liệu mới
+        const updatedUser = { ...user, ...data };
+
+        // Cập nhật State
+        setUser(updatedUser);
+
+        // Cập nhật LocalStorage để khi F5 không bị mất
+        localStorage.setItem("michi_user", JSON.stringify(updatedUser));
+    };
+
     return (
-        <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+        <AuthContext.Provider value={{ user, login, logout, updateUser, isLoading }}>
             {children}
         </AuthContext.Provider>
     );
