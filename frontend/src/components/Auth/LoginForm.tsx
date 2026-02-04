@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { useLocale } from 'next-intl'
 import { ROUTES } from "@/src/lib/routes";
+import { API_ROUTES } from "@/src/lib/api-routes";
 
 export default function LoginForm() {
     const { login } = useAuth();
@@ -21,7 +22,7 @@ export default function LoginForm() {
         setIsLoading(true);
 
         try {
-            const res = await fetch("http://localhost:8000/api/login", {
+            const res = await fetch(API_ROUTES.AUTH.LOGIN, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData),

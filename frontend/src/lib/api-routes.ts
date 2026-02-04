@@ -9,6 +9,6 @@ export const API_ROUTES = {
     ADMIN: {
         USERS: `${BASE_URL}/users`,
         HOTELS: `${BASE_URL}/hotels`,
-        // ... các route khác
+        REGIONS: `${BASE_URL}/regions`,
     }
 };
