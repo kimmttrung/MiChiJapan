@@ -10,6 +10,8 @@ export const API_ROUTES = {
         USERS: `${BASE_URL}/users`,
         HOTELS: `${BASE_URL}/hotels`,
         REGIONS: `${BASE_URL}/regions`,
+        RESTAURANTS: `${BASE_URL}/restaurants`,
+        CUISINES: `${BASE_URL}/cuisines`,
     }
 
 

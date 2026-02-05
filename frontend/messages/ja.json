@@ -21,6 +21,7 @@
         "regions": "地域・エリア",
         "hotels": "宿泊施設",
         "restaurants": "飲食店",
+        "cuisines": "料理ジャンル",
         "trips": "AI旅行プラン",
         "settings": "設定",
         "logout": "ログアウト"
