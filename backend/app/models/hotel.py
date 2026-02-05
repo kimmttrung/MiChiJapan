@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, Float  
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
 from app.core.database import Base
@@ -15,7 +15,7 @@ class Hotel(Base):
     address = Column(Text)
 
     price_per_night = Column(Integer)
-    rating = Column(Integer)
+    rating = Column(Float)
 
     map_url = Column(Text)
 

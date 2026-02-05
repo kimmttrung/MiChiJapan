@@ -11,4 +11,8 @@ export const API_ROUTES = {
         HOTELS: `${BASE_URL}/hotels`,
         REGIONS: `${BASE_URL}/regions`,
     }
+
+
 };
+
+
