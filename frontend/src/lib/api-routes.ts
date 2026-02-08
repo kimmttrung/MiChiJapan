@@ -12,6 +12,7 @@ export const API_ROUTES = {
         REGIONS: `${BASE_URL}/regions`,
         RESTAURANTS: `${BASE_URL}/restaurants`,
         CUISINES: `${BASE_URL}/cuisines`,
+        PLACES: `${BASE_URL}/places`,
     }
 
 

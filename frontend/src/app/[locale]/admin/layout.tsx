@@ -76,6 +76,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { key: "hotels", href: "/admin/hotels", icon: Hotel },
         { key: "restaurants", href: "/admin/restaurants", icon: Utensils },
         { key: "cuisines", href: "/admin/cuisines", icon: UtensilsCrossed },
+        { key: "places", href: "/admin/places", icon: UtensilsCrossed },
         { key: "trips", href: "/admin/trips", icon: Calendar },
         { key: "settings", href: "/admin/settings", icon: Settings },
     ];

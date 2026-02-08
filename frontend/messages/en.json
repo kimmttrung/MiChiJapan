@@ -22,6 +22,7 @@
         "hotels": "Hotels",
         "restaurants": "Restaurants",
         "cuisines": "Cuisines",
+        "places": "Places",
         "trips": "AI Trips",
         "settings": "Settings",
         "logout": "Logout"
