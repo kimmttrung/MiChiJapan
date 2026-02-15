@@ -58,7 +58,9 @@ export default function Navbar() {
                     <Link href="#" className="hover:text-brand-dark transition-colors">{t('planning')}</Link>
 
                     {/* CTA AI Chuyến đi - Nổi bật */}
-                    <Link href="#" className="flex items-center gap-2 text-brand-accent font-bold hover:opacity-80 transition-opacity">
+                    <Link
+                        href={`/${locale}/ai-trip`}
+                        className="flex items-center gap-2 text-brand-accent font-bold hover:opacity-80 transition-opacity">
                         <span className="relative flex h-2 w-2">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
