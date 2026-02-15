@@ -8,6 +8,22 @@ import { useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl';
 import { ROUTES } from "../lib/routes";
 import { useAuth } from "../context/AuthContext";
+import MegaMenu from "./MegaMenu";
+
+const MENU_DESTINATIONS = {
+    featured: [
+        { title: "Tokyo", href: "/vi/destinations/1", image: "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=300", description: "Thủ đô hiện đại bậc nhất" },
+        { title: "Kyoto", href: "/vi/destinations/2", image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=300", description: "Cố đô đền chùa cổ kính" },
+        { title: "Osaka", href: "/vi/destinations/3", image: "https://images.unsplash.com/photo-1590559318664-4065053e843a?q=80&w=300", description: "Nhà bếp của Nhật Bản" },
+        { title: "Hokkaido", href: "/vi/destinations/4", image: "https://images.unsplash.com/photo-1578271887552-5ac3a72752bc?q=80&w=300", description: "Thiên đường tuyết trắng" },
+    ],
+    list: [
+        { title: "Okinawa", href: "/vi/destinations/5" },
+        { title: "Nara", href: "/vi/destinations/6" },
+        { title: "Hakone (Núi Phú Sĩ)", href: "/vi/destinations/7" },
+        { title: "Hiroshima", href: "/vi/destinations/8" },
+    ]
+};
 
 export default function Navbar() {
     const { user, logout } = useAuth(); // Lấy thông tin user
@@ -52,10 +68,16 @@ export default function Navbar() {
 
                 {/* 2. MENU CHÍNH (5 Mục) */}
                 <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
-                    <Link href="#" className="hover:text-brand-dark transition-colors">{t('destinations')}</Link>
-                    <Link href="#" className="hover:text-brand-dark transition-colors">{t('interests')}</Link>
-                    <Link href="#" className="hover:text-brand-dark transition-colors">{t('events')}</Link>
-                    <Link href="#" className="hover:text-brand-dark transition-colors">{t('planning')}</Link>
+                    <MegaMenu
+                        label={t('destinations')}
+                        featured={MENU_DESTINATIONS.featured}
+                        list={MENU_DESTINATIONS.list}
+                    />
+
+                    {/* Các link thường */}
+                    <Link href="#" className="text-sm font-bold text-gray-600 hover:text-red-600 transition-colors">{t('events')}</Link>
+                    <Link href="#" className="text-sm font-medium text-gray-600 hover:text-brand-dark transition-colors">{t('events')}</Link>
+                    <Link href="#" className="text-sm font-medium text-gray-600 hover:text-brand-dark transition-colors">{t('planning')}</Link>
 
                     {/* CTA AI Chuyến đi - Nổi bật */}
                     <Link
