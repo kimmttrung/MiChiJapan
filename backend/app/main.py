@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import users, auth, regions, hotels, restaurants, cuisines, place # Import auth mới
+from app.api import users, auth, regions, hotels, restaurants, cuisines, place, trip # Import auth mới
 
 app = FastAPI()
 
@@ -20,3 +20,4 @@ app.include_router(hotels.router, prefix="/api", tags=["Hotels"])
 app.include_router(restaurants.router, prefix="/api", tags=["Restaurants"])
 app.include_router(cuisines.router, prefix="/api", tags=["Cuisines"])
 app.include_router(place.router, prefix="/api", tags=["Places"])
+app.include_router(trip.router, prefix="/api/v1", tags=["Trips"])

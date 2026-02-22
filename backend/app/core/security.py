@@ -13,9 +13,7 @@ ALGORITHM = os.getenv("ALGORITHM", "HS256")
 # Chuyển đổi phút sang kiểu số nguyên (int)
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 1440))
 
-# --- XỬ LÝ MẬT KHẨU ---
 def hash_password(password: str) -> str:
-    """Băm mật khẩu thành chuỗi an toàn"""
     hashed = bcrypt.hashpw(
         password.encode("utf-8"),
         bcrypt.gensalt()
@@ -23,7 +21,6 @@ def hash_password(password: str) -> str:
     return hashed.decode("utf-8")
 
 def verify_password(password: str, hashed: str) -> bool:
-    """Kiểm tra mật khẩu nhập vào có khớp với bản băm trong DB không"""
     try:
         return bcrypt.checkpw(
             password.encode("utf-8"),

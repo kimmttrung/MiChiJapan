@@ -1,110 +1,80 @@
-import google.generativeai as genai
 import json
-import os
-from dotenv import load_dotenv
+from groq import Groq
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import text
+from app.core.config import settings
 
-load_dotenv() # Load API KEY từ file .env
+client = Groq(api_key=settings.GROQ_API_KEY)
 
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-
-def generate_itinerary(region: str, days: int, budget: str, db_locations: list):
-    locations_context = "\n".join([
-        f"- {loc.name} ({loc.type}): {loc.description}, Giá: {loc.price_avg}, Rating: {loc.rating}"
-        for loc in db_locations
-    ])
-
-    prompt = f"""
-    Bạn là chuyên gia du lịch MichiJapan. Hãy thiết kế lịch trình {days} ngày tại {region} với ngân sách {budget}.
-    QUAN TRỌNG: Chỉ trả về JSON thuần túy, không bao gồm ký tự markdown ```json hay giải thích gì thêm.
-    
-    Dữ liệu ưu tiên:
-    {locations_context}
-
-    Định dạng JSON:
-    {{
-        "trip_name": "Tên chuyến đi",
-        "total_estimated_cost": 5000000,
-        "schedule": [
-            {{
-                "day": 1,
-                "activities": [
-                    {{"time": "08:00", "place": "Địa điểm", "note": "Ghi chú"}}
-                ]
-            }}
-        ]
-    }}
-    """
-
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    
+async def generate_trip_plan(prompt: str, db: AsyncSession):
     try:
-        response = model.generate_content(prompt)
-        content = response.text.strip()
+        # --- BƯỚC 1: NHẬN DIỆN VÙNG NHANH ---
+        regions_res = await db.execute(text("SELECT id, name FROM regions"))
+        regions = regions_res.fetchall()
         
-        # Xử lý cắt bỏ markdown nếu AI lỡ tay thêm vào
-        if "```" in content:
-            content = content.replace("```json", "").replace("```", "").strip()
-        
-        # Tìm cặp ngoặc nhọn đầu và cuối để đảm bảo chỉ lấy JSON
-        start = content.find('{')
-        end = content.rfind('}') + 1
-        return json.loads(content[start:end])
-        
-    except Exception as e:
-        print(f"AI Service Error: {e}")
-        # Trả về một cấu trúc mặc định để Frontend không bị crash
-        return {
-            "trip_name": "Lỗi lịch trình",
-            "total_estimated_cost": 0,
-            "schedule": [{"day": 1, "activities": [{"time": "00:00", "place": "Không thể tạo lịch trình", "note": str(e)}]}]
-        }
-    # 1. Chuyển data từ DB thành chuỗi text để AI đọc
-    locations_context = "\n".join([
-        f"- {loc.name} ({loc.type}): {loc.description}, Giá: {loc.price_avg}, Rating: {loc.rating}"
-        for loc in db_locations
-    ])
+        target_region_id = None
+        for r in regions:
+            if r.name.lower() in prompt.lower():
+                target_region_id = r.id
+                break
 
-    # 2. System Prompt cực kỳ quan trọng
-    prompt = f"""
-    Bạn là chuyên gia du lịch MichiJapan. Hãy thiết kế lịch trình {days} ngày tại {region} với ngân sách {budget}.
-    
-    QUAN TRỌNG: Chỉ được gợi ý các địa điểm có trong danh sách sau đây (nếu phù hợp), nếu thiếu có thể gợi ý thêm địa điểm nổi tiếng bên ngoài nhưng ưu tiên danh sách này:
-    {locations_context}
+        # --- BƯỚC 2: TRÍCH XUẤT DỮ LIỆU CỐT LÕI ---
+        # Chỉ lấy Tên, Giá, Đánh giá (Bỏ ảnh để tiết kiệm Token tuyệt đối)
+        hotel_sql = "SELECT name, price_per_night, rating FROM hotels WHERE is_active = True"
+        if target_region_id:
+            hotel_sql += f" AND region_id = {target_region_id}"
+        
+        hotels_res = await db.execute(text(hotel_sql + " ORDER BY rating DESC LIMIT 3"))
+        list_hotels = hotels_res.fetchall()
 
-    Hãy trả về kết quả KHÔNG có markdown, chỉ là thuần JSON theo định dạng sau:
+        rest_sql = "SELECT name, rating FROM restaurants WHERE is_active = True"
+        if target_region_id:
+            rest_sql += f" AND region_id = {target_region_id}"
+        
+        rest_res = await db.execute(text(rest_sql + " ORDER BY rating DESC LIMIT 5"))
+        list_restaurants = rest_res.fetchall()
+
+        # --- BƯỚC 3: CONTEXT SIÊU SẠCH ---
+        # AI sẽ dựa vào giá khách sạn để ước lượng tổng chi phí
+        h_ctx = "\n".join([f"- {h.name}: {h.price_per_night}đ/đêm ({h.rating}*)" for h in list_hotels])
+        r_ctx = "\n".join([f"- {r.name} ({r.rating}*)" for r in list_restaurants])
+
+        # --- BƯỚC 4: PROMPT TẬP TRUNG VÀO NGÂN SÁCH ---
+        full_prompt = f"""
+Sử dụng dữ liệu:
+KS: {h_ctx}
+QUÁN: {r_ctx}
+
+YÊU CẦU: "{prompt}"
+
+NHIỆM VỤ:
+1. Phân tích số người/ngày/ngân sách từ yêu cầu.
+2. Lập lịch trình CHI TIẾT. Tính toán 'price' cho mỗi hoạt động sao cho tổng khớp với ngân sách của user.
+3. Trả về JSON format: 
+{{
+  "title": "Tên chuyến đi",
+  "budget_summary": {{"total_per_person": 0, "note": "Ghi chú chia tiền"}},
+  "itinerary": [
     {{
-        "trip_name": "Tên chuyến đi hấp dẫn",
-        "total_estimated_cost": 5000000,
-        "schedule": [
-            {{
-                "day": 1,
-                "activities": [
-                    {{"time": "08:00", "place": "Tên địa điểm", "note": "Làm gì ở đó"}}
-                ]
-            }}
-        ],
-        "recommended_stays": ["Tên khách sạn trong list"],
-        "recommended_food": ["Tên quán ăn"]
+      "day": 1,
+      "items": [
+        {{ "time": "HH:mm", "activity": "Mô tả", "location": "Tên quán/KS", "type": "dining/visit/hotel", "price": 0 }}
+      ]
     }}
-    """
+  ]
+}}
+"""
 
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    try:
-        response = model.generate_content(prompt)
-        # Lấy nội dung text
-        content = response.text
+        # --- BƯỚC 5: GỌI AI ---
+        chat_completion = client.chat.completions.create(
+            messages=[{"role": "user", "content": full_prompt}],
+            model="llama-3.3-70b-versatile",
+            response_format={"type": "json_object"},
+            temperature=0.3
+        )
         
-        # Tìm vị trí thực sự của JSON nếu AI lỡ tay viết thêm text ở ngoài
-        start_index = content.find('{')
-        end_index = content.rfind('}') + 1
-        json_str = content[start_index:end_index]
-        
-        return json.loads(json_str)
+        return json.loads(chat_completion.choices[0].message.content)
+
     except Exception as e:
-        print(f"Error parsing AI response: {e}")
-        return {"error": "AI response was not in valid JSON format", "raw": response.text}
-    
-    
-    # Xử lý chuỗi để lấy đúng JSON
-    clean_json = response.text.replace("```json", "").replace("```", "")
-    return json.loads(clean_json)
+        print(f"Lỗi: {e}")
+        return {"title": "Lỗi kết nối", "budget_summary": {"total_per_person": 0, "note": "Thử lại"}, "itinerary": []}
