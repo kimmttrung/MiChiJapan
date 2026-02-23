@@ -34,6 +34,10 @@ export default function Navbar() {
     const pathname = usePathname()
     const [, startTransition] = useTransition()
 
+    const isActive = (path: string) => {
+        return pathname.startsWith(path);
+    };
+
     const onSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const nextLocale = e.target.value
 
@@ -75,19 +79,96 @@ export default function Navbar() {
                     />
 
                     {/* Các link thường */}
-                    <Link href="#" className="text-sm font-bold text-gray-600 hover:text-red-600 transition-colors">{t('events')}</Link>
-                    <Link href="#" className="text-sm font-medium text-gray-600 hover:text-brand-dark transition-colors">{t('events')}</Link>
-                    <Link href="#" className="text-sm font-medium text-gray-600 hover:text-brand-dark transition-colors">{t('planning')}</Link>
+                    <Link
+                        href={`/${locale}/events`}
+                        className="relative text-sm font-medium group"
+                    >
+                        <span
+                            className={`transition-colors ${isActive(`/${locale}/events`)
+                                ? "text-red-600 font-bold"
+                                : "text-gray-600 group-hover:text-red-600"
+                                }`}
+                        >
+                            {t("events")}
+                        </span>
+
+                        <span
+                            className={`absolute left-0 -bottom-1 h-[2px] bg-red-600 transition-all duration-300
+      ${isActive(`/${locale}/events`)
+                                    ? "w-full"
+                                    : "w-0 group-hover:w-full"
+                                }`}
+                        ></span>
+                    </Link>
+                    <Link
+                        href={`/${locale}/interests`}
+                        className="relative text-sm font-medium group"
+                    >
+                        <span
+                            className={`transition-colors ${isActive(`/${locale}/interests`)
+                                ? "text-red-600 font-bold"
+                                : "text-gray-600 group-hover:text-red-600"
+                                }`}
+                        >
+                            {t("interests")}
+                        </span>
+
+                        <span
+                            className={`absolute left-0 -bottom-1 h-[2px] bg-red-600 transition-all duration-300
+      ${isActive(`/${locale}/interests`)
+                                    ? "w-full"
+                                    : "w-0 group-hover:w-full"
+                                }`}
+                        ></span>
+                    </Link>
+                    <Link
+                        href={`/${locale}/planning`}
+                        className="relative text-sm font-medium group"
+                    >
+                        <span
+                            className={`transition-colors ${isActive(`/${locale}/planning`)
+                                ? "text-red-600 font-bold"
+                                : "text-gray-600 group-hover:text-red-600"
+                                }`}
+                        >
+                            {t("planning")}
+                        </span>
+
+                        <span
+                            className={`absolute left-0 -bottom-1 h-[2px] bg-red-600 transition-all duration-300
+      ${isActive(`/${locale}/planning`)
+                                    ? "w-full"
+                                    : "w-0 group-hover:w-full"
+                                }`}
+                        ></span>
+                    </Link>
 
                     {/* CTA AI Chuyến đi - Nổi bật */}
                     <Link
                         href={`/${locale}/ai-trip`}
-                        className="flex items-center gap-2 text-brand-accent font-bold hover:opacity-80 transition-opacity">
-                        <span className="relative flex h-2 w-2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                        className="relative flex items-center gap-2 font-bold group"
+                    >
+                        <span
+                            className={`flex items-center gap-2 transition-colors ${isActive(`/${locale}/ai-trip`)
+                                ? "text-red-600"
+                                : "text-brand-accent group-hover:opacity-80"
+                                }`}
+                        >
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                            </span>
+
+                            {t("ai_trip")}
                         </span>
-                        {t('ai_trip')}
+
+                        <span
+                            className={`absolute left-0 -bottom-1 h-[2px] bg-red-600 transition-all duration-300
+      ${isActive(`/${locale}/ai-trip`)
+                                    ? "w-full"
+                                    : "w-0 group-hover:w-full"
+                                }`}
+                        ></span>
                     </Link>
                 </div>
 

@@ -11,7 +11,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
 
     const menuItems = [
         { name: "Hồ sơ cá nhân", href: `/${locale}/user/profile`, icon: User },
-        { name: "Chuyến đi AI", href: `/${locale}/user/my-trips`, icon: Sparkles },
+        { name: "Chuyến đi AI", href: `/${locale}/ai-trip`, icon: Sparkles },
         { name: "Địa điểm đã lưu", href: `/${locale}/user/saved`, icon: Heart },
     ];
 
@@ -46,8 +46,8 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
                                             key={item.href}
                                             href={item.href}
                                             className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${isActive
-                                                    ? "bg-black text-white shadow-lg shadow-gray-200"
-                                                    : "text-gray-600 hover:bg-gray-50 hover:text-black"
+                                                ? "bg-black text-white shadow-lg shadow-gray-200"
+                                                : "text-gray-600 hover:bg-gray-50 hover:text-black"
                                                 }`}
                                         >
                                             <item.icon size={18} />

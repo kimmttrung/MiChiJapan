@@ -4,6 +4,7 @@ import { useAuth } from "@/src/context/AuthContext";
 import { Camera, Save, Loader2, Mail, Phone, MapPin, User as UserIcon, UploadCloud } from "lucide-react";
 import { toast } from "sonner";
 import { API_ROUTES } from "@/src/lib/api-routes";
+import Navbar from "@/src/components/Navbar";
 
 export default function ProfilePage() {
     const { user, updateUser } = useAuth();  // login/updateUser function from context
@@ -144,7 +145,9 @@ export default function ProfilePage() {
     };
 
     return (
+
         <div className="bg-white rounded-3xl shadow-xl shadow-gray-100 border border-white overflow-hidden animate-in fade-in duration-500">
+            <Navbar />
 
             {/* --- Banner Gradient --- */}
             <div className="h-44 bg-gradient-to-r from-violet-600 via-indigo-500 to-purple-500 w-full relative">
@@ -267,7 +270,6 @@ export default function ProfilePage() {
                             </div>
                         </div>
 
-                        {/* Bio */}
                         {/* Bio */}
                         <div className="space-y-2 md:col-span-2">
                             <label className="text-sm font-semibold text-gray-700 ml-1">Giới thiệu bản thân</label>

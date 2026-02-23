@@ -8,7 +8,7 @@ client = Groq(api_key=settings.GROQ_API_KEY)
 
 async def generate_trip_plan(prompt: str, db: AsyncSession):
     try:
-        # --- BƯỚC 1: NHẬN DIỆN VÙNG NHANH ---
+        # --- BƯỚC 1: NHẬN DIỆN VÙNG ---
         regions_res = await db.execute(text("SELECT id, name FROM regions"))
         regions = regions_res.fetchall()
         
@@ -18,8 +18,8 @@ async def generate_trip_plan(prompt: str, db: AsyncSession):
                 target_region_id = r.id
                 break
 
-        # --- BƯỚC 2: TRÍCH XUẤT DỮ LIỆU CỐT LÕI ---
-        # Chỉ lấy Tên, Giá, Đánh giá (Bỏ ảnh để tiết kiệm Token tuyệt đối)
+        # --- BƯỚC 2: TRÍCH XUẤT DỮ LIỆU ---
+        # Lấy Top 3 KS và Top 5 Nhà hàng để tiết kiệm Token
         hotel_sql = "SELECT name, price_per_night, rating FROM hotels WHERE is_active = True"
         if target_region_id:
             hotel_sql += f" AND region_id = {target_region_id}"
@@ -34,38 +34,34 @@ async def generate_trip_plan(prompt: str, db: AsyncSession):
         rest_res = await db.execute(text(rest_sql + " ORDER BY rating DESC LIMIT 5"))
         list_restaurants = rest_res.fetchall()
 
-        # --- BƯỚC 3: CONTEXT SIÊU SẠCH ---
-        # AI sẽ dựa vào giá khách sạn để ước lượng tổng chi phí
-        h_ctx = "\n".join([f"- {h.name}: {h.price_per_night}đ/đêm ({h.rating}*)" for h in list_hotels])
+        # --- BƯỚC 3: CONTEXT TINH GỌN ---
+        h_ctx = "\n".join([f"- {h.name}: {h.price_per_night}đ ({h.rating}*)" for h in list_hotels])
         r_ctx = "\n".join([f"- {r.name} ({r.rating}*)" for r in list_restaurants])
 
-        # --- BƯỚC 4: PROMPT TẬP TRUNG VÀO NGÂN SÁCH ---
+        # --- BƯỚC 4: PROMPT ---
         full_prompt = f"""
-Sử dụng dữ liệu:
+Dữ liệu:
 KS: {h_ctx}
 QUÁN: {r_ctx}
+Yêu cầu: "{prompt}"
 
-YÊU CẦU: "{prompt}"
+Nhiệm vụ: Trả về JSON lịch trình du lịch. 
+Lưu ý: Tính toán chi tiết 'price' từng mục sao cho tổng chi phí khớp với ngân sách user mong muốn.
 
-NHIỆM VỤ:
-1. Phân tích số người/ngày/ngân sách từ yêu cầu.
-2. Lập lịch trình CHI TIẾT. Tính toán 'price' cho mỗi hoạt động sao cho tổng khớp với ngân sách của user.
-3. Trả về JSON format: 
+JSON Format:
 {{
   "title": "Tên chuyến đi",
-  "budget_summary": {{"total_per_person": 0, "note": "Ghi chú chia tiền"}},
+  "budget_summary": {{ "total_per_person": 0, "note": "Giải thích chi phí" }},
   "itinerary": [
     {{
       "day": 1,
       "items": [
-        {{ "time": "HH:mm", "activity": "Mô tả", "location": "Tên quán/KS", "type": "dining/visit/hotel", "price": 0 }}
+        {{ "time": "HH:mm", "activity": "Mô tả", "location": "Tên", "type": "dining/visit/hotel", "price": 0 }}
       ]
     }}
   ]
 }}
 """
-
-        # --- BƯỚC 5: GỌI AI ---
         chat_completion = client.chat.completions.create(
             messages=[{"role": "user", "content": full_prompt}],
             model="llama-3.3-70b-versatile",
@@ -73,8 +69,12 @@ NHIỆM VỤ:
             temperature=0.3
         )
         
-        return json.loads(chat_completion.choices[0].message.content)
+        ai_data = json.loads(chat_completion.choices[0].message.content)
+        
+        # Trả thêm region_id để Frontend dễ quản lý khi lưu
+        ai_data["region_id"] = target_region_id
+        return ai_data
 
     except Exception as e:
         print(f"Lỗi: {e}")
-        return {"title": "Lỗi kết nối", "budget_summary": {"total_per_person": 0, "note": "Thử lại"}, "itinerary": []}
+        return {"title": "Lỗi", "budget_summary": {"total_per_person": 0}, "itinerary": []}
