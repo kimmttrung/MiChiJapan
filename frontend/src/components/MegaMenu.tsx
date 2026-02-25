@@ -21,7 +21,7 @@ export default function MegaMenu({ label, featured, list }: MegaMenuProps) {
             {/* TRIGGER LINK */}
             <button className="relative h-full px-1 text-sm font-bold text-gray-600 group-hover:text-red-600 transition-colors flex items-center gap-1">
                 {label}
-                <span className="absolute bottom-6 left-0 w-0 h-0.5 bg-red-600 transition-all group-hover:w-full"></span>
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-600 transition-all group-hover:w-full"></span>
             </button>
 
             {/* DROPDOWN CONTAINER */}

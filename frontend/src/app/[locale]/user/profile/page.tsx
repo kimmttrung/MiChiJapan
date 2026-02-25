@@ -147,7 +147,7 @@ export default function ProfilePage() {
     return (
 
         <div className="bg-white rounded-3xl shadow-xl shadow-gray-100 border border-white overflow-hidden animate-in fade-in duration-500">
-            <Navbar />
+            {/* <Navbar /> */}
 
             {/* --- Banner Gradient --- */}
             <div className="h-44 bg-gradient-to-r from-violet-600 via-indigo-500 to-purple-500 w-full relative">

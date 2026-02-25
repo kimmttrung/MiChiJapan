@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Sparkles, Send, MapPin, Loader2, Utensils, Hotel, Download, RefreshCcw, ChevronRight, Map, Pencil, Trash2 } from "lucide-react";
+import dynamic from 'next/dynamic';
 
 // --- BƯỚC 1: ĐỊNH NGHĨA INTERFACE CHUẨN ---
 interface TripItem {
@@ -12,6 +13,7 @@ interface TripItem {
     price: number;
     image_url?: string;
     details?: string;
+    map_url?: string;
 }
 
 interface DayPlan {
@@ -43,6 +45,11 @@ export default function AITripPlanner() {
     const [loading, setLoading] = useState(false);
     const [step, setStep] = useState<"input" | "generating" | "result">("input");
     const [result, setResult] = useState<TripData | null>(null);
+
+    const TripMap = dynamic(() => import('./TripMap'), {
+        ssr: false,
+        loading: () => <div className="h-[350px] w-full bg-gray-100 animate-pulse rounded-[24px]" />
+    });
 
     const suggestions = [
         "🌸 3 ngày ở Đà Lạt ngân sách 2 triệu",
@@ -262,6 +269,7 @@ export default function AITripPlanner() {
                             </button>
                         </div>
                     )}
+
                 </div>
 
                 {/* ITINERARY */}
@@ -273,6 +281,12 @@ export default function AITripPlanner() {
                             <div className="bg-black text-white px-6 py-2 rounded-full w-max mx-auto mb-10 font-black">
                                 NGÀY {day.day}
                             </div>
+
+                            {/* TÍCH HỢP BẢN ĐỒ Ở ĐÂY */}
+                            <div className="mb-8 border-4 border-white shadow-2xl rounded-[32px] overflow-hidden">
+                                <TripMap items={day.items} />
+                            </div>
+
 
                             <div className="flex flex-wrap justify-center gap-8">
 
@@ -336,6 +350,8 @@ export default function AITripPlanner() {
                                             </p>
                                         )}
 
+
+
                                     </div>
                                 ))}
 
@@ -363,7 +379,7 @@ export default function AITripPlanner() {
             if (!response.ok) throw new Error("AI không phản hồi");
 
             const data = await response.json();
-
+            console.log("check data 1", data);
             setResult(data);
             setStep("result");
         } catch (error) {
