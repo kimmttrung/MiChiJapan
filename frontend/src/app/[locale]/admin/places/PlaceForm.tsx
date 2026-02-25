@@ -1,6 +1,6 @@
 "use client";
 
-import { X } from "lucide-react";
+import { MapPin, X } from "lucide-react";
 // Import các icon cho tags
 import {
     Wifi, SquareParking, Snowflake, Baby, Waves,
@@ -166,6 +166,32 @@ export default function PlaceForm({
                             onChange={e => update("address", e.target.value)}
                             className="w-full border rounded-lg px-4 py-2 mt-1"
                         />
+                    </div>
+
+                    {/* GOOGLE MAP URL (NEW) */}
+                    <div className="col-span-2">
+                        <label className="text-sm font-semibold text-gray-700 flex justify-between">
+                            <span>Link Google Maps (URL)</span>
+                            {place.map_url && (
+                                <a
+                                    href={place.map_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                                >
+                                    <MapPin size={12} /> Xem thử link
+                                </a>
+                            )}
+                        </label>
+                        <input
+                            value={place.map_url || ""}
+                            onChange={e => update("map_url", e.target.value)}
+                            className="w-full border rounded-lg px-4 py-2 mt-1 focus:ring-2 focus:ring-black outline-none font-mono text-xs"
+                            placeholder="https://www.google.com/maps/place/..."
+                        />
+                        <p className="text-[10px] text-gray-400 mt-1 italic">
+                            * Ưu tiên sử dụng link nhúng (iframe src) hoặc link trực tiếp từ Google Maps.
+                        </p>
                     </div>
 
                     {/* TAGS SELECTION (NEW) */}

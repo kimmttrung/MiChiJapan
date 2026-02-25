@@ -17,6 +17,7 @@ class TripItem(BaseModel):
     price: int
     image_url: Optional[str] = ""
     details: Optional[str] = ""
+    map_url: Optional[str] = None
 
 class DayPlan(BaseModel):
     day: int
