@@ -1,282 +1,178 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import Navbar from "@/src/components/Navbar";
-import Button from "@/src/components/ui/Button";
-import Input from "@/src/components/ui/Input";
-import { Heart, Star } from "lucide-react";
+import EventCard from "@/src/components/EventCard"
+import FilterBar from "@/src/components/FilterBar"
+import Navbar from "@/src/components/Navbar"
+import Pagination from "@/src/components/Pagination"
+import { useState } from "react"
 
-import { useLocale } from "next-intl";
-import Link from "next/link";
-
-const EVENTS = [
-    // FESTIVAL
-    {
-        id: 1,
-        title: "Lễ hội pháo hoa Đà Nẵng 2026",
-        location: "Đà Nẵng",
-        category: "Festival",
-        image: "https://images.unsplash.com/photo-1506157786151-b8491531f063?q=80&w=1200",
-        description: "Sự kiện pháo hoa quốc tế lớn nhất Việt Nam.",
-    },
-    {
-        id: 2,
-        title: "Festival Huế 2026",
-        location: "Huế",
-        category: "Festival",
-        image: "https://images.unsplash.com/photo-1549880338-65ddcdfd017b?q=80&w=1200",
-        description: "Lễ hội văn hóa nghệ thuật đặc sắc tại cố đô Huế.",
-    },
-
-    // FOOD
-    {
-        id: 3,
-        title: "Hội chợ ẩm thực Hà Nội",
-        location: "Hà Nội",
-        category: "Food",
-        image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1200",
-        description: "Tinh hoa ẩm thực miền Bắc.",
-    },
-    {
-        id: 4,
-        title: "Lễ hội bánh mì Sài Gòn",
-        location: "TP.HCM",
-        category: "Food",
-        image: "https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=1200",
-        description: "Sự kiện tôn vinh bánh mì Việt Nam.",
-    },
-
-    // MUSIC
-    {
-        id: 5,
-        title: "Monsoon Music Festival",
-        location: "Hà Nội",
-        category: "Music",
-        image: "https://images.unsplash.com/photo-1497032205916-ac775f0649ae?q=80&w=1200",
-        description: "Lễ hội âm nhạc quốc tế hoành tráng.",
-    },
-    {
-        id: 6,
-        title: "HOZO Music Festival",
-        location: "TP.HCM",
-        category: "Music",
-        image: "https://images.unsplash.com/photo-1518972559570-7cc1309f3229?q=80&w=1200",
-        description: "Đại nhạc hội ngoài trời sôi động.",
-    },
-
-    // CULTURAL
-    {
-        id: 7,
-        title: "Lễ hội đền Hùng",
-        location: "Phú Thọ",
-        category: "Cultural",
-        image: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?q=80&w=1200",
-        description: "Sự kiện tưởng nhớ các vua Hùng.",
-    },
-    {
-        id: 8,
-        title: "Lễ hội chùa Hương",
-        location: "Hà Nội",
-        category: "Cultural",
-        image: "https://images.unsplash.com/photo-1523905330026-b8bd1f5f320e?q=80&w=1200",
-        description: "Hành hương đầu năm nổi tiếng.",
-    },
-];
 
 export default function EventsPage() {
-    const [search, setSearch] = useState("");
-    const [activeCategory, setActiveCategory] = useState("All");
-    const [favorites, setFavorites] = useState<number[]>([]);
-    const [interested, setInterested] = useState<number[]>([]);
-    const [currentPage, setCurrentPage] = useState(1);
-    const EVENTS_PER_PAGE = 3;
-    const locale = useLocale()
 
-    const toggleFavorite = (id: number) => {
-        setFavorites((prev) =>
-            prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-        );
-    };
+    const [search, setSearch] = useState("")
+    const [city, setCity] = useState("")
+    const [category, setCategory] = useState("")
+    const [timeFilter, setTimeFilter] = useState("")
+    const [page, setPage] = useState(1)
 
-    const toggleInterested = (id: number) => {
-        setInterested((prev) =>
-            prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-        );
-    };
+    // data/events.ts
 
-    const filtered = EVENTS.filter((e) => {
-        const matchSearch = e.title
-            .toLowerCase()
-            .includes(search.toLowerCase());
+    const EVENTS = [
+        {
+            id: 1,
+            title: "Lễ hội Pháo hoa Quốc tế Đà Nẵng 2026",
+            category: "Festival",
+            city: "Đà Nẵng",
+            date: "2026-07-05",
+            image: "https://images.unsplash.com/photo-1506157786151-b8491531f063",
+            description: "Sự kiện pháo hoa lớn nhất Việt Nam với nhiều đội quốc tế tham gia."
+        },
+        {
+            id: 2,
+            title: "Lễ hội Áo dài TP.HCM",
+            category: "Culture",
+            city: "TP.HCM",
+            date: "2026-03-10",
+            image: "https://images.unsplash.com/photo-1551024601-bec78aea704b",
+            description: "Tôn vinh vẻ đẹp áo dài truyền thống Việt Nam."
+        },
+        {
+            id: 3,
+            title: "Festival Huế 2026",
+            category: "Festival",
+            city: "Huế",
+            date: "2026-04-12",
+            image: "https://images.unsplash.com/photo-1524492412937-b28074a5d7da",
+            description: "Chuỗi hoạt động văn hóa nghệ thuật đặc sắc tại cố đô Huế."
+        },
+        {
+            id: 4,
+            title: "TechFest Vietnam 2026",
+            category: "Technology",
+            city: "Hà Nội",
+            date: "2026-02-28",
+            image: "https://images.unsplash.com/photo-1556761175-4b46a572b786",
+            description: "Ngày hội khởi nghiệp đổi mới sáng tạo lớn nhất Việt Nam."
+        },
+        {
+            id: 5,
+            title: "Lễ hội Cà phê Buôn Ma Thuột",
+            category: "Culture",
+            city: "Đắk Lắk",
+            date: "2026-03-18",
+            image: "https://images.unsplash.com/photo-1509042239860-f550ce710b93",
+            description: "Tôn vinh cà phê Việt Nam và quảng bá thương hiệu toàn cầu."
+        },
+        {
+            id: 6,
+            title: "Giải Marathon Quốc tế Hà Nội",
+            category: "Sports",
+            city: "Hà Nội",
+            date: "2026-03-22",
+            image: "https://images.unsplash.com/photo-1476480862126-209bfaa8edc8",
+            description: "Giải chạy marathon thu hút hàng nghìn vận động viên."
+        },
+        {
+            id: 7,
+            title: "Countdown Hồ Gươm 2026",
+            category: "Festival",
+            city: "Hà Nội",
+            date: "2026-12-31",
+            image: "https://images.unsplash.com/photo-1482517967863-00e15c9b44be",
+            description: "Sự kiện đếm ngược chào năm mới tại Hồ Gươm."
+        },
+        {
+            id: 8,
+            title: "Lễ hội Bánh dân gian Nam Bộ",
+            category: "Culture",
+            city: "Cần Thơ",
+            date: "2026-04-05",
+            image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
+            description: "Trưng bày và giới thiệu các loại bánh truyền thống Nam Bộ."
+        }
+    ]
 
-        const matchCategory =
-            activeCategory === "All" || e.category === activeCategory;
+    const now = new Date()
 
-        return matchSearch && matchCategory;
-    });
+    const filtered = EVENTS.filter(event => {
+        const eventDate = new Date(event.date)
 
-    const totalPages = Math.ceil(filtered.length / EVENTS_PER_PAGE);
+        let timeMatch = true
 
-    const paginatedEvents = filtered.slice(
-        (currentPage - 1) * EVENTS_PER_PAGE,
-        currentPage * EVENTS_PER_PAGE
-    );
-    // console.log(params)
+        if (timeFilter === "thisWeek") {
+            const endWeek = new Date()
+            endWeek.setDate(now.getDate() + 7)
+            timeMatch = eventDate >= now && eventDate <= endWeek
+        }
+
+        if (timeFilter === "nextWeek") {
+            const start = new Date()
+            start.setDate(now.getDate() + 7)
+            const end = new Date()
+            end.setDate(now.getDate() + 14)
+            timeMatch = eventDate >= start && eventDate <= end
+        }
+
+        if (timeFilter === "thisMonth") {
+            timeMatch =
+                eventDate.getMonth() === now.getMonth() &&
+                eventDate.getFullYear() === now.getFullYear()
+        }
+
+        if (timeFilter === "nextMonth") {
+            const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1)
+            timeMatch =
+                eventDate.getMonth() === nextMonth.getMonth() &&
+                eventDate.getFullYear() === nextMonth.getFullYear()
+        }
+
+        return (
+            event.title.toLowerCase().includes(search.toLowerCase()) &&
+            (city ? event.city === city : true) &&
+            (category ? event.category === category : true) &&
+            timeMatch
+        )
+    })
+
+    const itemsPerPage = 6
+    const totalPages = Math.ceil(filtered.length / itemsPerPage)
+    const paginated = filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage)
 
     return (
-        <div className="bg-white min-h-screen">
+        <div className="bg-neutral-50 min-h-screen text-black">
+
             <Navbar />
 
             {/* HERO */}
-            <div className="relative h-[55vh] mt-16">
+            <section className="relative h-[380px]">
                 <img
-                    src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1600"
-                    className="w-full h-full object-cover"
+                    src="https://images.unsplash.com/photo-1506157786151-b8491531f063"
+                    className="absolute inset-0 w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/50" />
+                <div className="relative z-10 flex items-center justify-center h-full text-white">
+                    <h1 className="text-4xl font-bold">Khám phá sự kiện tại Việt Nam</h1>
+                </div>
+            </section>
+
+            <section className="max-w-7xl mx-auto py-16 px-4">
+
+                <FilterBar
+                    search={search} setSearch={setSearch}
+                    city={city} setCity={setCity}
+                    category={category} setCategory={setCategory}
+                    timeFilter={timeFilter} setTimeFilter={setTimeFilter}
                 />
 
-                <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-black/40 flex items-center">
-                    <div className="max-w-6xl mx-auto px-6 text-white">
-                        <h1 className="text-5xl font-bold mb-6">
-                            Khám phá sự kiện Việt Nam
-                        </h1>
-
-                        <Input
-                            placeholder="Tìm kiếm sự kiện..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="w-full md:w-96 bg-white"
-                        />
-                    </div>
-                </div>
-            </div>
-
-            {/* FILTER BAR */}
-            <div className="max-w-6xl mx-auto px-6 py-8 flex flex-wrap gap-3">
-                {["All", "Festival", "Food", "Music", "Cultural"].map((cat) => (
-                    <Button
-                        key={cat}
-                        variant={activeCategory === cat ? "primary" : "outline"}
-                        onClick={() => setActiveCategory(cat)}
-                    >
-                        {cat}
-                    </Button>
-                ))}
-            </div>
-
-            {/* CONTENT */}
-            <div className="max-w-6xl mx-auto px-6 pb-16 grid grid-cols-1 lg:grid-cols-4 gap-12">
-                {/* LEFT - LIST */}
-                <div className="lg:col-span-3 space-y-10">
-                    {paginatedEvents.map((event) => (
-                        <div
-                            key={event.id}
-                            className="flex bg-white rounded-2xl shadow-md hover:shadow-2xl transition duration-300 overflow-hidden border"
-                        >
-                            {/* IMAGE */}
-                            <div className="w-72 h-56 flex-shrink-0 relative group">
-                                <img
-                                    src={event.image}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                                />
-
-                                {/* Favorite Icon */}
-                                <button
-                                    onClick={() => toggleFavorite(event.id)}
-                                    className="absolute top-4 right-4 bg-white p-2 rounded-full shadow"
-                                >
-                                    <Heart
-                                        size={18}
-                                        className={
-                                            favorites.includes(event.id)
-                                                ? "text-red-500 fill-red-500"
-                                                : "text-gray-400"
-                                        }
-                                    />
-                                </button>
-                            </div>
-
-                            {/* CONTENT */}
-                            <div className="p-6 flex flex-col justify-between flex-1">
-                                <div>
-                                    <p className="text-xs uppercase text-gray-400 font-bold tracking-wider">
-                                        {event.category}
-                                    </p>
-
-                                    <Link href={`/${locale}/events/${event.id}`}>
-                                        <h3 className="text-2xl font-bold text-gray-900 mb-3 hover:text-red-600 transition cursor-pointer">
-                                            {event.title}
-                                        </h3>
-                                    </Link>
-
-                                    <p className="text-gray-500 text-sm leading-relaxed">
-                                        {event.description}
-                                    </p>
-                                </div>
-
-                                <div className="flex justify-between items-center mt-6">
-                                    <span className="text-sm text-gray-400">
-                                        📍 {event.location}
-                                    </span>
-
-                                    <div className="flex gap-3 items-center">
-                                        <button
-                                            onClick={() => toggleInterested(event.id)}
-                                            className="flex items-center gap-1 text-sm text-gray-500 hover:text-yellow-500"
-                                        >
-                                            <Star
-                                                size={16}
-                                                className={
-                                                    interested.includes(event.id)
-                                                        ? "text-yellow-500 fill-yellow-500"
-                                                        : ""
-                                                }
-                                            />
-                                            Quan tâm
-                                        </button>
-
-                                        <Button>Xem chi tiết</Button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {paginated.map(event => (
+                        <EventCard key={event.id} event={event} />
                     ))}
-                    <div className="flex justify-center gap-3 mt-8">
-                        {Array.from({ length: totalPages }, (_, i) => (
-                            <button
-                                key={i}
-                                onClick={() => setCurrentPage(i + 1)}
-                                className={`px-4 py-2 rounded-lg border ${currentPage === i + 1
-                                    ? "bg-red-600 text-white"
-                                    : "bg-white"
-                                    }`}
-                            >
-                                {i + 1}
-                            </button>
-                        ))}
-                    </div>
                 </div>
 
-                {/* RIGHT - SIDEBAR */}
-                <div className="space-y-6">
-                    <div className="bg-gray-50 p-6 rounded-2xl border">
-                        <h3 className="font-bold text-lg mb-4 text-gray-800">
-                            Bộ lọc nâng cao
-                        </h3>
+                <Pagination page={page} totalPages={totalPages} setPage={setPage} />
 
-                        <div className="space-y-4">
-                            <Input placeholder="Tìm theo địa điểm..." />
-
-                            <select className="w-full border rounded-lg p-2 text-sm text-gray-700">
-                                <option>Tất cả tỉnh thành</option>
-                                <option>Đà Nẵng</option>
-                                <option>Hà Nội</option>
-                            </select>
-
-                            <Button className="w-full">Áp dụng</Button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            </section>
         </div>
-    );
+    )
 }
