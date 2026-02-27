@@ -3,4 +3,5 @@ from .hotel import Hotel
 from .region import Region
 from .restaurant import Restaurant
 from .place import Place
-# sau này import thêm Region, Hotel, Resort...
+# Giữ lại các import cũ của bạn bên dưới
+

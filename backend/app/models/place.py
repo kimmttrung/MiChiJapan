@@ -3,6 +3,7 @@ from sqlalchemy import Column, Integer, String, Text, Boolean, Float, ForeignKey
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.sql import func
 from app.core.database import Base
+from sqlalchemy.orm import relationship
 
 class Place(Base):
     __tablename__ = "places"
@@ -26,3 +27,4 @@ class Place(Base):
 
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, server_default=func.now())
+    region = relationship("Region", back_populates="spots")

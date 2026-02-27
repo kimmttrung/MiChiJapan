@@ -42,7 +42,7 @@ class HotelUpdate(BaseModel):
 
 class HotelResponse(HotelBase):
     id: int
-    created_at: datetime
+    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

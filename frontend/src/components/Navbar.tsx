@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Search, Mountain, Flower, User, ChevronDown, UserIcon, Settings, LogOut } from "lucide-react"; // Icon đại diện
 import { usePathname, useRouter } from 'next/navigation'
 import { useLocale } from 'next-intl'
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { useTranslations } from 'next-intl';
 import { ROUTES } from "../lib/routes";
 import { useAuth } from "../context/AuthContext";
@@ -33,6 +33,38 @@ export default function Navbar() {
     const router = useRouter()
     const pathname = usePathname()
     const [, startTransition] = useTransition()
+    const [destinations, setDestinations] = useState<any[]>([]); // State lưu data từ DB
+
+    useEffect(() => {
+        async function fetchDestinations() {
+            try {
+                // SỬA TẠI ĐÂY: Thêm /api vào URL để khớp với main.py include_router
+                const res = await fetch("http://localhost:8000/api/regions");
+                if (res.ok) {
+                    const data = await res.json();
+                    setDestinations(data);
+                }
+            } catch (error) {
+                console.error("Lỗi lấy danh sách địa điểm:", error);
+            }
+        }
+        fetchDestinations();
+    }, []);
+    // Biến đổi dữ liệu thật từ DB
+    const featuredDestinations = destinations.slice(0, 4).map(reg => ({
+        title: reg.name,
+        href: `/${locale}/destinations/${reg.id}`,
+        // Ưu tiên ảnh từ DB, nếu không có mới dùng ảnh mặc định
+        image: reg.cover_image || "https://images.unsplash.com/photo-1503899036084-c55cdd92da26",
+        description: reg.description ? reg.description.substring(0, 50) + "..." : "Khám phá vẻ đẹp Nhật Bản"
+    }));
+
+    const otherDestinations = destinations.slice(4).map(reg => ({
+        title: reg.name,
+        href: `/${locale}/destinations/${reg.id}`
+    }));
+    console.log("check v1", featuredDestinations)
+
 
     const isActive = (path: string) => {
         return pathname.startsWith(path);
@@ -74,8 +106,8 @@ export default function Navbar() {
                 <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
                     <MegaMenu
                         label={t('destinations')}
-                        featured={MENU_DESTINATIONS.featured}
-                        list={MENU_DESTINATIONS.list}
+                        featured={featuredDestinations}
+                        list={otherDestinations}
                     />
 
                     {/* Các link thường */}

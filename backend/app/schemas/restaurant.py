@@ -20,7 +20,7 @@ class RestaurantCuisineDTO(BaseModel):
 
 class RestaurantCuisineResponse(RestaurantCuisineDTO):
     id: Optional[int] = None
-    cuisine_name: str  # Để hiển thị tên món (VD: Sushi) thay vì ID
+    cuisine_name: Optional[str] = None
     class Config:
         from_attributes = True
 

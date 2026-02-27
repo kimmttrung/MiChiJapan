@@ -3,13 +3,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.core.database import get_db
 from app.models.region import Region
-from app.schemas.region import RegionCreate, RegionUpdate
+from app.schemas.region import RegionCreate, RegionUpdate, RegionResponse
 
 router = APIRouter()
 
-@router.get("/regions")
+@router.get("/regions", response_model=list[RegionResponse]) # Thêm response_model
 async def get_regions(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Region).order_by(Region.id.desc()))
+    result = await db.execute(select(Region).order_by(Region.id.asc())) # asc để hiện đúng thứ tự
     return result.scalars().all()
 
 @router.post("/regions")

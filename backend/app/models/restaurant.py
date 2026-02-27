@@ -27,6 +27,10 @@ class RestaurantCuisine(Base):
     # Relationships
     cuisine = relationship("Cuisine") 
     restaurant = relationship("Restaurant", back_populates="cuisines_data")
+    # Thêm property này để Schema tự động nhận diện cuisine_name
+    @property
+    def cuisine_name(self):
+        return self.cuisine.name if self.cuisine else None
 
 # Bảng chính: Nhà hàng
 class Restaurant(Base):
@@ -52,3 +56,4 @@ class Restaurant(Base):
     region = relationship("Region")
     # Link tới bảng trung gian
     cuisines_data = relationship("RestaurantCuisine", back_populates="restaurant", cascade="all, delete-orphan")
+    region = relationship("Region", back_populates="restaurants")
