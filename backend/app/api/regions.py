@@ -45,3 +45,21 @@ async def delete_region(region_id: int, db: AsyncSession = Depends(get_db)):
     await db.delete(region)
     await db.commit()
     return {"message": "Xóa vùng thành công"}
+
+@router.get("/regions/{region_id}", response_model=RegionResponse)
+async def get_region_detail(region_id: int, db: AsyncSession = Depends(get_db)):
+    # 1. Thực hiện truy vấn lấy thông tin chi tiết vùng theo ID
+    result = await db.execute(
+        select(Region).where(Region.id == region_id)
+    )
+    region = result.scalars().first()
+
+    # 2. Kiểm tra nếu không tìm thấy vùng
+    if not region:
+        raise HTTPException(
+            status_code=404, 
+            detail="Không tìm thấy thông tin địa điểm này"
+        )
+
+    # 3. Trả về thông tin vùng (bao gồm name, image_url,...)
+    return region

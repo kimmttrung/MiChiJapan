@@ -104,7 +104,7 @@ export default function HotelDetailPage() {
 
             if (response.ok) {
                 toast.success("Đặt phòng thành công!");
-                router.push(`/${locale}/planning`); // Chuyển hướng về trang quản lý đơn hàng
+                router.push(`/${locale}/bookings`); // Chuyển hướng về trang quản lý đơn hàng
             } else {
                 const error = await response.json();
                 toast.error(`Lỗi: ${error.detail || "Không thể đặt phòng"}`);

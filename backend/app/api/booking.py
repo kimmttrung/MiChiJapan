@@ -115,3 +115,47 @@ async def cancel_booking(
     await db.commit()
 
     return {"message": "Booking cancelled"}
+
+from datetime import datetime, timedelta
+from fastapi import HTTPException, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+
+@router.delete("/{booking_id}")
+async def delete_booking(
+    booking_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    # 1. Truy vấn đơn hàng từ cơ sở dữ liệu
+    result = await db.execute(
+        select(HotelBooking).filter(
+            HotelBooking.id == booking_id,
+            HotelBooking.user_id == current_user.id
+        )
+    )
+    booking = result.scalars().first()
+
+    # 2. Kiểm tra tồn tại
+    if not booking:
+        raise HTTPException(status_code=404, detail="Không tìm thấy thông tin dịch vụ.")
+
+    # 3. Logic kiểm tra thời gian (Không quá 1 tiếng)
+    now = datetime.utcnow()
+    # Giả định booking.created_at là kiểu datetime trong DB
+    time_diff = now - booking.created_at
+
+    if time_diff > timedelta(hours=1):
+        raise HTTPException(
+            status_code=400, 
+            detail="Đã quá 1 giờ kể từ khi đặt, bạn không thể xóa dịch vụ này. Vui lòng liên hệ hỗ trợ."
+        )
+
+    # 4. Thực hiện xóa
+    try:
+        await db.delete(booking)
+        await db.commit()
+        return {"message": "Đã xóa dịch vụ thành công."}
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail="Lỗi hệ thống khi xóa dữ liệu.")

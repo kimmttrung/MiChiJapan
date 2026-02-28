@@ -63,7 +63,7 @@ export default function Navbar() {
         title: reg.name,
         href: `/${locale}/destinations/${reg.id}`
     }));
-    console.log("check v1", featuredDestinations)
+    // console.log("check v1", featuredDestinations)
 
 
     const isActive = (path: string) => {
@@ -132,6 +132,7 @@ export default function Navbar() {
                                 }`}
                         ></span>
                     </Link>
+
                     <Link
                         href={`/${locale}/interests`}
                         className="relative text-sm font-medium group"
@@ -148,6 +149,27 @@ export default function Navbar() {
                         <span
                             className={`absolute left-0 -bottom-1 h-[2px] bg-red-600 transition-all duration-300
       ${isActive(`/${locale}/interests`)
+                                    ? "w-full"
+                                    : "w-0 group-hover:w-full"
+                                }`}
+                        ></span>
+                    </Link>
+                    <Link
+                        href={`/${locale}/bookings`}
+                        className="relative text-sm font-medium group"
+                    >
+                        <span
+                            className={`transition-colors ${isActive(`/${locale}/bookings`)
+                                ? "text-red-600 font-bold"
+                                : "text-gray-600 group-hover:text-red-600"
+                                }`}
+                        >
+                            {t("bookings")}
+                        </span>
+
+                        <span
+                            className={`absolute left-0 -bottom-1 h-[2px] bg-red-600 transition-all duration-300
+      ${isActive(`/${locale}/bookings`)
                                     ? "w-full"
                                     : "w-0 group-hover:w-full"
                                 }`}
