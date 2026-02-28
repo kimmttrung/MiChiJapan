@@ -71,3 +71,21 @@ class MyBookingResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class UserShortResponse(BaseModel):
+    id: int
+    full_name: str
+    email: EmailStr
+    phone: Optional[str]
+    address: Optional[str]
+    avatar_url: Optional[str]
+
+    class Config:
+        from_attributes = True
+
+class AdminBookingResponse(MyBookingResponse):
+    # Thêm trường user vào đây
+    user: Optional[UserShortResponse] 
+
+    class Config:
+        from_attributes = True

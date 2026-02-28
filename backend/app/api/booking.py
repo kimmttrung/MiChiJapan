@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.core.database import get_db
-from app.schemas.booking import BookingCreate, BookingResponse, MyBookingResponse
+from app.schemas.booking import BookingCreate, BookingResponse, MyBookingResponse, AdminBookingResponse
 from app.models.hotel_booking import HotelBooking
 from app.dependencies import get_current_user, get_current_admin
 from app.models.hotel import Hotel
@@ -62,6 +62,22 @@ async def book_hotel(
 
     return new_booking
 
+@router.get("/all", response_model=list[AdminBookingResponse])
+async def get_all_bookings_admin(
+    db: AsyncSession = Depends(get_db),
+    current_admin = Depends(get_current_admin)
+):
+    result = await db.execute(
+        select(HotelBooking)
+        .options(
+            selectinload(HotelBooking.hotel),
+            selectinload(HotelBooking.user) # Bây giờ lệnh này sẽ hoạt động
+        )
+        .order_by(HotelBooking.created_at.desc())
+    )
+    
+    bookings = result.scalars().all()
+    return bookings
 
 @router.get("/my-bookings", response_model=list[MyBookingResponse])
 async def my_bookings(
@@ -87,6 +103,8 @@ async def approve_booking(
         select(HotelBooking).filter(HotelBooking.id == booking_id)
     )
     booking = result.scalars().first()
+    if booking.status != "pending":
+        raise HTTPException(status_code=400, detail="Chỉ có thể phê duyệt đơn ở trạng thái chờ")
 
     if not booking:
         raise HTTPException(status_code=404, detail="Not found")

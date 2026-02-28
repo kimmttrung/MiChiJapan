@@ -24,6 +24,7 @@
         "restaurants": "飲食店",
         "cuisines": "料理ジャンル",
         "places": "場所",
+        "bookings": "予約一覧",
         "trips": "AI旅行プラン",
         "settings": "設定",
         "logout": "ログアウト"

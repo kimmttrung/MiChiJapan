@@ -34,3 +34,4 @@ class HotelBooking(Base):
     payment = relationship("Payment", back_populates="booking", uselist=False)
     hotel_id = Column(Integer, ForeignKey("hotels.id"))
     hotel = relationship("Hotel")
+    user = relationship("User")

@@ -7,7 +7,8 @@ import {
     Utensils, Calendar, Settings, LogOut,
     Menu, X, Loader2, Globe, // Thêm icon quả địa cầu cho đẹp
     UtensilsCrossed,
-    FerrisWheel
+    FerrisWheel,
+    CalendarCheck
 } from "lucide-react";
 import { useAuth } from "@/src/context/AuthContext";
 import { useTranslations, useLocale } from "next-intl"; // 🟢 Import useLocale
@@ -78,6 +79,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { key: "restaurants", href: "/admin/restaurants", icon: Utensils },
         { key: "cuisines", href: "/admin/cuisines", icon: UtensilsCrossed },
         { key: "places", href: "/admin/places", icon: FerrisWheel },
+        { key: "bookings", href: "/admin/bookings", icon: CalendarCheck },
         { key: "trips", href: "/admin/trips", icon: Calendar },
         { key: "settings", href: "/admin/settings", icon: Settings },
     ];
