@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Sparkles, Send, MapPin, Loader2, Utensils, Hotel, Download, RefreshCcw, ChevronRight, Map, Pencil, Trash2 } from "lucide-react";
+import { Sparkles, Send, MapPin, Loader2, Utensils, Hotel, Download, RefreshCcw, ChevronRight, Map, Pencil, Trash2, Clock, ExternalLink, Navigation, CreditCard } from "lucide-react";
 import dynamic from 'next/dynamic';
+import { toast } from "sonner";
+import Link from "next/link";
+import { useLocale } from "next-intl";
 
 // --- BƯỚC 1: ĐỊNH NGHĨA INTERFACE CHUẨN ---
 interface TripItem {
@@ -41,6 +44,7 @@ interface SavedTrip {
 }
 
 export default function AITripPlanner() {
+    const locale = useLocale();
     const [prompt, setPrompt] = useState("");
     const [loading, setLoading] = useState(false);
     const [step, setStep] = useState<"input" | "generating" | "result">("input");
@@ -69,7 +73,11 @@ export default function AITripPlanner() {
     // Hàm lấy danh sách từ Backend
     const fetchMyTrips = async () => {
         try {
-            const res = await fetch("http://localhost:8000/api/v1/my-trips");
+            const token = localStorage.getItem("michi_token");
+            const res = await fetch("http://localhost:8000/api/v1/my-trips", {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+
             const data = await res.json();
             console.log("check data", data);
             setMyTrips(data);
@@ -81,16 +89,55 @@ export default function AITripPlanner() {
     };
 
     // Hàm trả về icon bắt mắt dựa trên từ khóa hoạt động
-    const getActivityIcon = (activity: string, type: string) => {
-        const text = activity.toLowerCase();
-        if (text.includes("biển") || text.includes("beach") || text.includes("đảo")) return "🏖️";
-        if (text.includes("núi") || text.includes("mountain") || text.includes("leo")) return "⛰️";
-        if (text.includes("ăn") || type === "dining") return "🍱";
-        if (text.includes("ngủ") || type === "hotel") return "🏨";
-        if (text.includes("bay") || text.includes("sân bay")) return "✈️";
-        if (text.includes("mua") || text.includes("shopping")) return "🛍️";
-        if (text.includes("đền") || text.includes("chùa") || text.includes("shrine")) return "⛩️";
-        return "📍";
+    const getActivityIcon = (type: string) => {
+        switch (type) {
+            case "hotel": return "🏨";
+            case "dining": return "🍱";
+            case "visit": return "📸";
+            case "transport": return "🚗";
+            default: return "📍";
+        }
+    };
+
+    const getActionButtons = (item: any, regionId: number) => {
+        const isSystemItem = item.item_id && regionId;
+        const googleMapUrl = item.map_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.location)}`;
+
+        if (isSystemItem) {
+            // TRƯỜNG HỢP CÓ ID: Link nội bộ + Google Maps
+            const category = item.type === "hotel" ? "hrestaurantss" : "hotels";
+            return (
+                <div className="flex gap-2 mt-4">
+                    <Link
+                        href={`/${locale}/destinations/${regionId}/${category}/${item.item_id}`}
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-[11px] font-black uppercase rounded-xl hover:bg-black transition-all shadow-lg shadow-blue-200"
+                    >
+                        <CreditCard size={14} /> Xem chi tiết
+                    </Link>
+                    <a
+                        href={googleMapUrl} target="_blank"
+                        className="p-2.5 bg-gray-100 text-gray-500 rounded-xl hover:bg-gray-200 transition-all"
+                    >
+                        <Navigation size={16} />
+                    </a>
+                </div>
+            );
+        } else {
+            // TRƯỜNG HỢP AI SINH (Biển, núi, check-in): Hiện "Khám phá" + "Maps"
+            return (
+                <div className="flex gap-2 mt-4">
+                    <a
+                        href={googleMapUrl} target="_blank"
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-500 text-white text-[11px] font-black uppercase rounded-xl hover:bg-emerald-600 transition-all shadow-lg shadow-emerald-100"
+                    >
+                        <MapPin size={14} /> Khám phá địa danh
+                    </a>
+                    <button className="p-2.5 bg-orange-50 text-orange-500 rounded-xl hover:bg-orange-100 transition-all">
+                        <Sparkles size={16} />
+                    </button>
+                </div>
+            );
+        }
     };
 
     if (view === "list") {
@@ -162,202 +209,129 @@ export default function AITripPlanner() {
 
     // --- RENDER CHI TIẾT DẠNG ROADMAP (BẢN ĐỒ ICON) ---
     if (view === "detail" && selectedTrip) {
-
         const tripData = isEditing ? editedTrip : selectedTrip;
+        const regionId = tripData.region_id;
+
+        console.log("check tripDaya", tripData)
 
         return (
-            <div className="w-full animate-in zoom-in-95 duration-500">
-                <button
-                    onClick={() => setView("list")}
-                    className="mb-6 flex items-center gap-2 text-gray-500 hover:text-black font-bold"
-                >
-                    ← Quay lại danh sách
+            <div className="w-full animate-in fade-in zoom-in-95 duration-700 pb-20">
+                {/* 1. BACK BUTTON */}
+                <button onClick={() => setView("list")} className="mb-8 flex items-center gap-2 text-gray-400 hover:text-black font-bold transition-all">
+                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">←</div> Quay lại
                 </button>
 
-                <div className="flex flex-col items-center gap-4 mb-10">
-
-                    {/* TITLE */}
-                    {isEditing ? (
-                        <input
-                            value={editedTrip.title}
-                            onChange={(e) =>
-                                setEditedTrip({ ...editedTrip, title: e.target.value })
-                            }
-                            className="text-3xl font-black border-b text-center outline-none !text-black"
-                        />
-                    ) : (
-                        <h2 className="text-3xl font-black !text-black">
-                            {tripData.title}
-                        </h2>
-                    )}
-
-                    {/* BUTTONS */}
-                    <div className="flex gap-4">
-
-                        <button
-                            className="p-2 rounded-xl hover:bg-blue-50 text-blue-500"
-                            onClick={() => {
-                                setEditedTrip(JSON.parse(JSON.stringify(selectedTrip)));
-                                setIsEditing(true);
-                            }}
-                        >
-                            <Pencil size={18} />
-                        </button>
-
-                        <button
-                            className="p-2 rounded-xl hover:bg-red-50 text-red-500"
-                            onClick={async () => {
-                                if (!confirm("Bạn chắc chắn muốn xóa?")) return;
-
-                                await fetch(
-                                    `http://localhost:8000/api/v1/trips/${selectedTrip.id}`,
-                                    { method: "DELETE" }
-                                );
-
-                                setView("list");
-                                fetchMyTrips();
-                            }}
-                        >
-                            <Trash2 size={18} />
-                        </button>
-
-                    </div>
-
-                    {/* SAVE BUTTON */}
-                    {isEditing && (
-                        <div className="flex gap-4">
-                            <button
-                                className="px-4 py-2 bg-green-500 text-white rounded-xl"
-                                onClick={async () => {
-
-                                    const res = await fetch(
-                                        `http://localhost:8000/api/v1/trips/${selectedTrip.id}`,
-                                        {
-                                            method: "PUT",
-                                            headers: { "Content-Type": "application/json" },
-                                            body: JSON.stringify({
-                                                title: editedTrip.title,
-                                                region_id: editedTrip.region_id ?? null,
-                                                total_days: editedTrip.ai_result.itinerary.length,
-                                                total_budget: editedTrip.total_budget ?? 0,
-                                                members: editedTrip.members ?? 1,
-                                                budget_per_person: editedTrip.budget_per_person ?? 0,
-                                                itinerary: editedTrip.ai_result.itinerary
-                                            })
-                                        }
-                                    );
-
-                                    if (!res.ok) {
-                                        const err = await res.json();
-                                        console.log(err);
-                                        alert("Lỗi: " + JSON.stringify(err));
-                                        return;
-                                    }
-
-                                    setSelectedTrip(editedTrip);
-                                    setIsEditing(false);
-                                }}
-                            >
-                                Lưu
-                            </button>
-
-                            <button
-                                className="px-4 py-2 bg-gray-300 rounded-xl"
-                                onClick={() => setIsEditing(false)}
-                            >
-                                Huỷ
-                            </button>
+                {/* 2. GLASSMORPHISM BANNER */}
+                <div className="relative mb-20 p-8 md:p-12 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 rounded-[50px] text-white shadow-2xl overflow-hidden border border-white/20">
+                    <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px]"></div>
+                    <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
+                        <div className="text-center md:text-left space-y-4">
+                            <div className="inline-block px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-[0.2em]">Lịch trình hành trình</div>
+                            <h2 className="text-4xl md:text-6xl font-black tracking-tighter leading-none italic uppercase">
+                                {tripData.title}
+                            </h2>
                         </div>
-                    )}
-
+                        {/* BUDGET CARD */}
+                        <div className="bg-white p-6 rounded-[35px] text-black shadow-2xl rotate-3 hover:rotate-0 transition-transform duration-500 min-w-[240px]">
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Dự toán cá nhân</p>
+                            <p className="text-4xl font-black text-blue-600 tracking-tighter">
+                                {tripData.budget_per_person?.toLocaleString()}đ
+                            </p>
+                            <div className="mt-3 flex items-center gap-2 text-[10px] font-bold text-gray-400 border-t pt-3">
+                                <Clock size={12} /> {tripData.total_days} Ngày khám phá
+                            </div>
+                        </div>
+                    </div>
+                    {/* Trang trí nền tròn */}
+                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-yellow-400/30 rounded-full blur-3xl animate-pulse"></div>
                 </div>
 
-                {/* ITINERARY */}
-                <div className="flex flex-col gap-16 relative">
+                {/* 3. SNAKE PATH ROADMAP */}
+                <div className="relative max-w-5xl mx-auto">
+                    {/* Đường line trung tâm */}
+                    <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-purple-100 via-pink-100 to-transparent -translate-x-1/2 hidden md:block"></div>
 
-                    {tripData.ai_result.itinerary.map((day, dIdx) => (
-                        <div key={dIdx}>
-
-                            <div className="bg-black text-white px-6 py-2 rounded-full w-max mx-auto mb-10 font-black">
-                                NGÀY {day.day}
-                            </div>
-
-                            {/* TÍCH HỢP BẢN ĐỒ Ở ĐÂY */}
-                            <div className="mb-8 border-4 border-white shadow-2xl rounded-[32px] overflow-hidden">
-                                <TripMap items={day.items} />
-                            </div>
-
-
-                            <div className="flex flex-wrap justify-center gap-8">
-
-                                {day.items.map((item, iIdx) => (
-
-                                    <div key={iIdx} className="flex flex-col items-center w-40 text-center">
-
-                                        {/* ICON + TIME */}
-                                        <div className="relative w-20 h-20 bg-white rounded-full shadow flex items-center justify-center text-4xl mb-3">
-
-                                            {getActivityIcon(item.activity, item.type)}
-
-                                            {isEditing ? (
-                                                <input
-                                                    value={editedTrip.ai_result.itinerary[dIdx].items[iIdx].time}
-                                                    onChange={(e) => {
-                                                        const clone = JSON.parse(JSON.stringify(editedTrip));
-                                                        clone.ai_result.itinerary[dIdx].items[iIdx].time = e.target.value;
-                                                        setEditedTrip(clone);
-                                                    }}
-                                                    className="absolute -bottom-3 text-[10px] border rounded text-center w-16 !text-black"
-                                                />
-                                            ) : (
-                                                <span className="absolute -bottom-3 text-[10px] bg-black text-white px-2 rounded ">
-                                                    {item.time}
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        {/* ACTIVITY */}
-                                        {isEditing ? (
-                                            <input
-                                                value={editedTrip.ai_result.itinerary[dIdx].items[iIdx].activity}
-                                                onChange={(e) => {
-                                                    const clone = JSON.parse(JSON.stringify(editedTrip));
-                                                    clone.ai_result.itinerary[dIdx].items[iIdx].activity = e.target.value;
-                                                    setEditedTrip(clone);
-                                                }}
-                                                className="font-bold text-sm border-b text-center outline-none !text-black"
-                                            />
-                                        ) : (
-                                            <p className="font-bold text-sm !text-black">
-                                                {item.activity}
-                                            </p>
-                                        )}
-
-                                        {/* LOCATION */}
-                                        {isEditing ? (
-                                            <input
-                                                value={editedTrip.ai_result.itinerary[dIdx].items[iIdx].location}
-                                                onChange={(e) => {
-                                                    const clone = JSON.parse(JSON.stringify(editedTrip));
-                                                    clone.ai_result.itinerary[dIdx].items[iIdx].location = e.target.value;
-                                                    setEditedTrip(clone);
-                                                }}
-                                                className="text-[10px] text-gray-400 text-center border-b outline-none"
-                                            />
-                                        ) : (
-                                            <p className="text-[10px] text-gray-400">
-                                                {item.location}
-                                            </p>
-                                        )}
-
-
-
+                    <div className="space-y-32">
+                        {tripData.ai_result.itinerary.map((day: any, dIdx: number) => (
+                            <div key={dIdx} className="relative">
+                                {/* Tag Ngày ở giữa đường đi */}
+                                <div className="flex justify-center mb-20 relative z-20">
+                                    <div className="bg-white border-[6px] border-gray-50 px-8 py-3 rounded-3xl shadow-xl">
+                                        <span className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">
+                                            DAY {day.day}
+                                        </span>
                                     </div>
-                                ))}
+                                </div>
 
+                                {/* Danh sách địa điểm so le */}
+                                <div className="space-y-16">
+                                    {day.items.map((item: any, iIdx: number) => {
+                                        const isLeft = iIdx % 2 === 0;
+                                        return (
+                                            <div key={iIdx} className={`flex items-center w-full ${isLeft ? 'md:flex-row' : 'md:flex-row-reverse'} flex-col gap-8`}>
+
+                                                {/* Card nội dung */}
+                                                <div className="w-full md:w-[42%]">
+                                                    <div className={`group bg-white p-6 rounded-[40px] border border-gray-100 shadow-xl hover:shadow-2xl transition-all duration-500 relative ${isLeft ? 'md:text-right' : 'md:text-left'}`}>
+
+                                                        {/* HEADER CARD: TIME, TYPE & PRICE */}
+                                                        <div className={`flex items-center justify-between mb-4 ${isLeft ? 'flex-row-reverse' : 'flex-row'}`}>
+                                                            <div className={`flex items-center gap-3 ${isLeft ? 'flex-row-reverse' : 'flex-row'}`}>
+                                                                <span className="px-3 py-1 bg-gray-900 text-white text-[10px] font-black rounded-lg shadow-md italic">
+                                                                    {item.time}
+                                                                </span>
+                                                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                                                    {item.type}
+                                                                </span>
+                                                            </div>
+
+                                                            {/* HIỂN THỊ GIÁ TIỀN */}
+                                                            <div className={`flex items-center gap-1 font-black text-sm ${item.price > 0 ? 'text-blue-600' : 'text-emerald-500'}`}>
+                                                                {item.price > 0 ? (
+                                                                    <>
+                                                                        <span className="text-[10px] text-gray-400 font-medium">dự chi</span>
+                                                                        {item.price.toLocaleString()}đ
+                                                                    </>
+                                                                ) : (
+                                                                    "Miễn phí"
+                                                                )}
+                                                            </div>
+                                                        </div>
+
+                                                        <h4 className="text-2xl font-black text-gray-800 mb-2 leading-tight group-hover:text-purple-600 transition-colors">
+                                                            {item.activity}
+                                                        </h4>
+
+                                                        <p className={`text-xs text-gray-400 flex items-center gap-1 mb-4 opacity-70 ${isLeft ? 'justify-end' : 'justify-start'}`}>
+                                                            <MapPin size={12} /> {item.location}
+                                                        </p>
+
+                                                        {/* NÚT THÔNG MINH */}
+                                                        {getActionButtons(item, regionId)}
+
+                                                        {/* Chỉ báo mũi tên nhỏ nối vào đường line */}
+                                                        <div className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white border-t border-l border-gray-100 rotate-45 hidden md:block 
+                            ${isLeft ? '-right-2 border-r border-b border-t-0 border-l-0' : '-left-2'}`}>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Icon trung tâm (Knot) */}
+                                                <div className="hidden md:flex w-[16%] justify-center relative z-20">
+                                                    <div className="w-14 h-14 bg-white rounded-2xl shadow-xl flex items-center justify-center text-2xl border-2 border-purple-50 transition-transform group-hover:scale-125 group-hover:rotate-12 duration-500">
+                                                        {getActivityIcon(item.activity)}
+                                                    </div>
+                                                </div>
+
+                                                {/* Khoảng trống đối xứng để tạo hiệu ứng Snake */}
+                                                <div className="hidden md:block w-[42%]"></div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
                 </div>
             </div>
         );
@@ -373,13 +347,15 @@ export default function AITripPlanner() {
             const response = await fetch("http://localhost:8000/api/v1/generate", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ prompt: prompt }),
+                // Đảm bảo prompt được stringify đúng cách
+                body: JSON.stringify({ prompt: prompt.trim() }),
             });
+
+            console.log("check res1", response);
 
             if (!response.ok) throw new Error("AI không phản hồi");
 
             const data = await response.json();
-            console.log("check data 1", data);
             setResult(data);
             setStep("result");
         } catch (error) {
@@ -395,34 +371,63 @@ export default function AITripPlanner() {
     const handleSaveTrip = async () => {
         if (!result) return;
 
+        // 1. Lấy Token và Thông tin User từ localStorage
+        const token = localStorage.getItem("michi_token");
+        const userData = JSON.parse(localStorage.getItem("michi_user") || "{}");
+
+        if (!token) {
+            alert("Vui lòng đăng nhập để lưu lịch trình!");
+            return;
+        }
+
         try {
-            // Logic lấy số người: tìm số trong prompt, nếu không thấy mặc định là 1
+            // 2. Trích xuất số người từ prompt (ví dụ: "4 người")
             const matchedMembers = prompt.match(/(\d+)\s*người/);
             const membersCount = matchedMembers ? parseInt(matchedMembers[1]) : 1;
 
-            const tripData = {
-                region_id: result.region_id,
+            // 3. Chuẩn bị Body theo Schema mới (có guest_name, phone, email, transport...)
+            const tripPayload = {
+                region_id: result.region_id || null,
                 title: result.title,
                 total_days: result.itinerary.length,
                 members: membersCount,
                 budget_per_person: result.budget_summary.total_per_person,
                 total_budget: result.budget_summary.total_per_person * membersCount,
-                ai_result: result,
+
+                // Thông tin lấy từ localStorage
+                guest_name: userData.full_name || "Khách ẩn danh",
+                guest_phone: userData.phone || "Chưa cung cấp",
+                guest_email: userData.email || "user@example.com",
+
+                // Các trường bổ sung
+                transport: "Tự túc", // Bạn có thể thêm một Select cho người dùng chọn
+                special_request: prompt, // Lưu lại prompt gốc như yêu cầu đặc biệt
+
+                ai_result: result, // Toàn bộ object JSON
             };
 
+            // 4. Gọi API với Authorization Header
             const response = await fetch("http://localhost:8000/api/v1/save", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(tripData),
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}` // THÊM DÒNG NÀY ĐỂ HẾT LỖI 401
+                },
+                body: JSON.stringify(tripPayload),
             });
 
             if (response.ok) {
-                alert(`🚀 Đã lưu thành công chuyến đi: ${result.title}`);
+                const data = await response.json();
+                toast.success(`🚀 Tuyệt vời! Chuyến đi "${result.title}" đã được lưu.`);
+                // Sau khi lưu thành công, có thể chuyển về trang danh sách
+                fetchMyTrips();
             } else {
-                alert("Lỗi khi lưu vào Database");
+                const errorData = await response.json();
+                alert(`Lỗi: ${errorData.detail || "Không thể lưu vào hệ thống"}`);
             }
         } catch (error) {
-            alert("Lỗi kết nối Server!");
+            console.error("Save error:", error);
+            alert("Lỗi kết nối Server khi đang lưu!");
         }
     };
 

@@ -11,6 +11,8 @@ export default function AdminBookingManager() {
     const [bookings, setBookings] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState("all");
+    const [selectedBooking, setSelectedBooking] = useState<any>(null); // Lưu booking đang xem chi tiết
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const fetchAllBookings = async () => {
         const token = localStorage.getItem("michi_token");
@@ -184,7 +186,13 @@ export default function AdminBookingManager() {
                                             )}
 
                                             {/* Nút xem chi tiết (luôn hiển thị) */}
-                                            <button className="p-2 bg-gray-50 text-gray-400 rounded-xl hover:bg-black hover:text-white transition-all">
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedBooking(book);
+                                                    setIsModalOpen(true);
+                                                }}
+                                                className="p-2 bg-gray-50 text-gray-400 rounded-xl hover:bg-black hover:text-white transition-all"
+                                            >
                                                 <ExternalLink size={18} />
                                             </button>
                                         </div>
@@ -195,6 +203,82 @@ export default function AdminBookingManager() {
                     </table>
                 </div>
             </div>
+            {isModalOpen && selectedBooking && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-300 p-4">
+                    <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+                        {/* Header Modal */}
+                        <div className="px-10 py-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
+                            <div>
+                                <h2 className="text-2xl font-black text-gray-900">Chi tiết dịch vụ</h2>
+                                <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">Mã vận đơn: #{selectedBooking.id}</p>
+                            </div>
+                            <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-white rounded-full transition-colors shadow-sm">
+                                <XCircle size={24} className="text-gray-400 hover:text-red-500" />
+                            </button>
+                        </div>
+
+                        {/* Nội dung Modal */}
+                        <div className="p-10 space-y-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                            {/* Thông tin khách hàng & Người đặt */}
+                            <section>
+                                <h3 className="text-xs font-black text-blue-500 uppercase tracking-tighter mb-4">Thông tin khách hàng</h3>
+                                <div className="grid grid-cols-2 gap-6 bg-gray-50 p-6 rounded-3xl border border-gray-100">
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase">Họ và tên</p>
+                                        <p className="font-bold text-gray-800">{selectedBooking.guest_full_name || selectedBooking.user?.full_name}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase">Số điện thoại</p>
+                                        <p className="font-bold text-gray-800">{selectedBooking.guest_phone || selectedBooking.user?.phone}</p>
+                                    </div>
+                                    <div className="col-span-2 space-y-1 border-t pt-3">
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase">Email liên lạc</p>
+                                        <p className="font-bold text-gray-800">{selectedBooking.guest_email || selectedBooking.user?.email}</p>
+                                    </div>
+                                </div>
+                            </section>
+
+                            {/* Yêu cầu đặc biệt */}
+                            <section>
+                                <h3 className="text-xs font-black text-blue-500 uppercase tracking-tighter mb-2">Yêu cầu từ khách hàng</h3>
+                                <div className="p-4 bg-orange-50 border border-orange-100 rounded-2xl italic text-gray-600 text-sm leading-relaxed">
+                                    "{selectedBooking.special_request || "Không có yêu cầu đặc biệt nào."}"
+                                </div>
+                            </section>
+
+                            {/* Thông tin thanh toán & Dịch vụ */}
+                            <section>
+                                <h3 className="text-xs font-black text-blue-500 uppercase tracking-tighter mb-4">Chi tiết thanh toán</h3>
+                                <div className="space-y-3">
+                                    <div className="flex justify-between items-center text-sm font-medium">
+                                        <span className="text-gray-400">Giá mỗi đêm:</span>
+                                        <span>{selectedBooking.hotel?.price_per_night?.toLocaleString()} VNĐ</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm font-medium">
+                                        <span className="text-gray-400">Số đêm lưu trú:</span>
+                                        <span>{selectedBooking.total_nights} đêm</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-xl font-black pt-4 border-t border-dashed border-gray-200">
+                                        <span>Tổng cộng:</span>
+                                        <span className="text-blue-600">{selectedBooking.total_amount?.toLocaleString()} VNĐ</span>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+
+                        {/* Footer Modal */}
+                        <div className="px-10 py-6 bg-gray-50/50 border-t border-gray-100 flex justify-end">
+                            <button
+                                onClick={() => setIsModalOpen(false)}
+                                className="px-8 py-3 bg-black text-white rounded-2xl font-bold text-sm hover:opacity-80 transition shadow-lg"
+                            >
+                                Đóng cửa sổ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
+
     );
 }
