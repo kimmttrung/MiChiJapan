@@ -121,6 +121,7 @@ export default function HotelsPage() {
                         data={hotel}
                         type="hotel"
                         priceLabel="đêm"
+                        regionId={id}
                     />
                 ))}
             </div>

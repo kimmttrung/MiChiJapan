@@ -22,7 +22,10 @@ async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Mật khẩu không chính xác")
 
     # 3. Tạo Token
-    token = create_access_token({"sub": user.email, "role": user.role})
+    token = create_access_token({
+    "user_id": user.id,
+    "role": user.role
+})
 
     return {
         "access_token": token,
