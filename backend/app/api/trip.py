@@ -185,7 +185,7 @@ async def get_my_trips(
         print(f"Error fetching trips: {str(e)}")
         raise HTTPException(status_code=500, detail="Không thể tải danh sách lịch trình cá nhân")
 
-@router.delete("/trips/{trip_id}")
+@router.delete("/admin/trips/{trip_id}")
 async def delete_trip(trip_id: int, db: AsyncSession = Depends(get_db)):
     try:
         # Xóa trip_items trước (FK constraint)
@@ -295,7 +295,8 @@ async def get_all_trips_admin(db: AsyncSession = Depends(get_db), admin=Depends(
     try:
         # SQL JOIN để lấy thông tin user
         sql = text("""
-            SELECT t.*, u.full_name as user_name, u.phone as user_phone, u.email as user_email 
+            SELECT t.*, u.full_name as user_name, u.phone as user_phone, 
+                   u.email as user_email, u.avatar_url as user_avatar 
             FROM trips t
             LEFT JOIN users u ON t.user_id = u.id
             ORDER BY t.created_at DESC
@@ -333,7 +334,8 @@ async def get_all_trips_admin(db: AsyncSession = Depends(get_db), admin=Depends(
                 "user_info": {
                     "name": trip.user_name,
                     "phone": trip.user_phone,
-                    "email": trip.user_email
+                    "email": trip.user_email,
+                    "avatar": trip.user_avatar
                 },
                 "itinerary": list(itinerary_from_db.values())
             })
