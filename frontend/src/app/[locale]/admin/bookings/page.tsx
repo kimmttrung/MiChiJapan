@@ -5,7 +5,6 @@ import {
     CheckCircle, XCircle, User, MapPin,
     Calendar, CreditCard, ExternalLink, Search
 } from "lucide-react";
-import Navbar from "@/src/components/Navbar";
 
 export default function AdminBookingManager() {
     const [bookings, setBookings] = useState<any[]>([]);
@@ -72,7 +71,6 @@ export default function AdminBookingManager() {
 
     return (
         <div className="min-h-screen bg-white text-black">
-            <Navbar />
 
             <div className="max-w-7xl mx-auto px-6 py-24">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">

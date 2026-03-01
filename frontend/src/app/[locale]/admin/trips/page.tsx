@@ -4,7 +4,6 @@ import {
     Search, Eye, Trash2, Download, TrendingUp,
     Users, MapPin, Calendar, DollarSign, X, Loader2
 } from 'lucide-react';
-import Navbar from '@/src/components/Navbar';
 
 
 export default function AdminTripsPage() {
@@ -127,8 +126,6 @@ export default function AdminTripsPage() {
 
     return (
         <div className="min-h-screen bg-[#f8fafc]">
-            <Navbar />
-
             <main className="p-8 max-w-7xl mx-auto">
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
