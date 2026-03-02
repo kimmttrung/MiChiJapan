@@ -129,3 +129,58 @@ async def delete_restaurant(id: int, db: AsyncSession = Depends(get_db)):
     await db.delete(restaurant)
     await db.commit()
     return {"message": "Deleted"}
+
+# --- GET SINGLE RESTAURANT (DETAIL) ---
+@router.get("/restaurants/{id}")
+async def get_restaurant_detail(id: int, db: AsyncSession = Depends(get_db)):
+    # 1. Truy vấn nhà hàng kèm Region và các Cuisines liên quan
+    query = (
+        select(Restaurant, Region.name.label("region_name"))
+        .join(Region, Restaurant.region_id == Region.id)
+        .where(Restaurant.id == id)
+        .options(
+            selectinload(Restaurant.cuisines_data).selectinload(RestaurantCuisine.cuisine)
+        )
+    )
+    
+    result = await db.execute(query)
+    row = result.first() # Lấy dòng đầu tiên tìm thấy
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Không tìm thấy nhà hàng này")
+
+    r, region_name = row
+
+    # 2. Map dữ liệu chính của nhà hàng
+    restaurant_detail = {
+        "id": r.id,
+        "region_id": r.region_id,
+        "region_name": region_name,
+        "name": r.name,
+        "description": r.description,
+        "address": r.address,
+        "map_url": r.map_url,
+        "rating": r.rating,
+        "image_urls": r.image_urls or [],
+        "tags": r.tags or [],
+        "is_active": r.is_active,
+        "created_at": r.created_at,
+    }
+
+    # 3. Map danh sách ẩm thực (Menu/Cuisines) chi tiết
+    mapped_cuisines = []
+    for rc in r.cuisines_data:
+        mapped_cuisines.append({
+            "id": rc.id,
+            "cuisine_id": rc.cuisine_id,
+            "cuisine_name": rc.cuisine.name if rc.cuisine else "Unknown",
+            "description": rc.description,
+            "average_price": rc.average_price,
+            "price_range": rc.price_range,
+            "is_available": rc.is_available,
+            "image_url": rc.image_url,
+        })
+    
+    restaurant_detail["cuisines_data"] = mapped_cuisines
+
+    return restaurant_detail

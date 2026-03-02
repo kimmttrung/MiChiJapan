@@ -88,10 +88,6 @@ CẤU TRÚC JSON:
             for item in day.get("items", []):
                 if "item_id" not in item:
                     item["item_id"] = None
-
-        print(f"--- Target Region ID: {target_region_id}")
-        print(f"--- AI Response: {ai_content}") # Xem AI có thực sự trả về item_id không hay do code logic phía sau
-        print(f"--- Hotels Context: {len(list_hotels)} items found")
         
         return ai_data
     

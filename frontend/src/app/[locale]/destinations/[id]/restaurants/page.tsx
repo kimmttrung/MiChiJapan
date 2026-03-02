@@ -33,7 +33,11 @@ export default function RestaurantsPage() {
 
             <div className="grid md:grid-cols-3 gap-8 mt-6">
                 {filtered.map(rs => (
-                    <RestaurantCard key={rs.id} data={rs} />
+                    <RestaurantCard
+                        key={rs.id}
+                        data={rs}
+                        regionId={id}
+                    />
                 ))}
             </div>
         </div>
