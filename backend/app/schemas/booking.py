@@ -1,14 +1,13 @@
 from pydantic import BaseModel, EmailStr, field_validator
-from datetime import date
-from typing import Optional
+from datetime import date, datetime
+from typing import Optional, List
 
-
+# --- CREATE ---
 class BookingCreate(BaseModel):
     hotel_id: int
     check_in: date
     check_out: date
     guests: int
-
     guest_full_name: Optional[str] = None
     guest_email: Optional[EmailStr] = None
     guest_phone: Optional[str] = None
@@ -29,6 +28,30 @@ class BookingCreate(BaseModel):
             raise ValueError("guests must be greater than 0")
         return v
 
+# --- SHARED RESPONSES ---
+class HotelShortResponse(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = None
+    map_url: Optional[str] = None
+    address: Optional[str] = None # Thêm address để hiện ở Detail
+    image_urls: Optional[List[str]] = None
+
+    class Config:
+        from_attributes = True
+
+class UserShortResponse(BaseModel):
+    id: int
+    full_name: str
+    email: EmailStr
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    avatar_url: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+# --- BOOKING RESPONSES ---
 class BookingResponse(BaseModel):
     id: int
     hotel_id: int
@@ -38,54 +61,19 @@ class BookingResponse(BaseModel):
     total_nights: int
     total_amount: int
     status: str
-
-    class Config:
-        from_attributes = True
-
-from typing import List
-from datetime import date, datetime
-
-
-class HotelShortResponse(BaseModel):
-    id: int
-    name: str
-    description: Optional[str]
-    map_url: Optional[str]
-    image_urls: Optional[List[str]]
-
-    class Config:
-        from_attributes = True
-
-
-class MyBookingResponse(BaseModel):
-    id: int
-    check_in: date
-    check_out: date
-    guests: int
-    total_nights: int
-    total_amount: int
-    status: str
+    
+    # Bổ sung các trường thông tin khách để xem Detail
+    guest_full_name: Optional[str] = None
+    guest_phone: Optional[str] = None
+    guest_email: Optional[str] = None
+    special_request: Optional[str] = None
     created_at: datetime
 
+    class Config:
+        from_attributes = True
+
+class MyBookingResponse(BookingResponse):
     hotel: HotelShortResponse
 
-    class Config:
-        from_attributes = True
-
-class UserShortResponse(BaseModel):
-    id: int
-    full_name: str
-    email: EmailStr
-    phone: Optional[str]
-    address: Optional[str]
-    avatar_url: Optional[str]
-
-    class Config:
-        from_attributes = True
-
 class AdminBookingResponse(MyBookingResponse):
-    # Thêm trường user vào đây
-    user: Optional[UserShortResponse] 
-
-    class Config:
-        from_attributes = True
+    user: Optional[UserShortResponse] = None

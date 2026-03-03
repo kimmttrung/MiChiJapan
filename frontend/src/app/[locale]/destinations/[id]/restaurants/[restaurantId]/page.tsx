@@ -7,23 +7,30 @@ import {
     MessageSquare, CheckCircle2,
     ArrowLeft, ArrowRight, Utensils, Info, Loader2
 } from 'lucide-react';
+import { useLocale } from 'next-intl';
 
 export default function RestaurantDetailPage() {
+    const locale = useLocale();
     const params = useParams();
-    const restaurantId = params.restaurantId; // Lấy ID từ URL folder [restaurantId]
+    const restaurantId = params.restaurantId;
 
     const [restaurant, setRestaurant] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [step, setStep] = useState(0);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
+    // 1. CẬP NHẬT FORM DATA (Thêm thông tin khách hàng)
     const [formData, setFormData] = useState({
+        restaurant_id: 0,
         bookingDate: "",
         bookingTime: "",
         guests: 2,
         specialRequest: "",
+        guest_full_name: "", // Sẽ lấy từ Profile hoặc User nhập
+        guest_email: "",
+        guest_phone: ""
     });
 
-    // --- GỌI API LẤY DATA THẬT ---
     useEffect(() => {
         const fetchRestaurant = async () => {
             try {
@@ -31,6 +38,12 @@ export default function RestaurantDetailPage() {
                 if (!response.ok) throw new Error("Không thể tải dữ liệu nhà hàng");
                 const data = await response.json();
                 setRestaurant(data);
+                // 2. MẶC ĐỊNH CHỌN ẢNH ĐẦU TIÊN KHI DATA LOAD XONG
+                if (data.image_urls && data.image_urls.length > 0) {
+                    setSelectedImage(data.image_urls[0]);
+                }
+
+                updateForm("restaurant_id", data.id);
             } catch (error) {
                 console.error("Error:", error);
             } finally {
@@ -45,7 +58,49 @@ export default function RestaurantDetailPage() {
         setFormData(prev => ({ ...prev, [key]: value }));
     };
 
-    // Trạng thái Loading
+    // 2. HÀM XỬ LÝ ĐẶT BÀN (CALL API)
+    const handleBooking = async () => {
+        const token = localStorage.getItem("michi_token");
+        if (!token) {
+            alert("Vui lòng đăng nhập để đặt bàn!");
+            return;
+        }
+
+        // Map dữ liệu từ State sang định dạng Schema Backend
+        const bookingPayload = {
+            restaurant_id: formData.restaurant_id,
+            guest_full_name: formData.guest_full_name || "Khách hàng", // Nên có bước nhập tên
+            guest_email: formData.guest_email || "email@example.com",
+            guest_phone: formData.guest_phone || "0123456789",
+            booking_date: formData.bookingDate,
+            booking_time: formData.bookingTime,
+            guests: formData.guests,
+            special_request: formData.specialRequest
+        };
+
+        try {
+            const response = await fetch("http://localhost:8000/api/restaurant-bookings/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(bookingPayload)
+            });
+
+            if (response.ok) {
+                alert("🎉 Đặt bàn thành công! Vui lòng chờ xác nhận.");
+                window.location.href = `/${locale}/bookings` // Chuyển hướng về trang lịch sử
+            } else {
+                const errorData = await response.json();
+                alert(`Lỗi: ${errorData.detail}`);
+            }
+        } catch (error) {
+            console.error("Booking Error:", error);
+            alert("Không thể kết nối đến máy chủ.");
+        }
+    };
+
     if (loading) return (
         <div className="h-screen flex flex-col items-center justify-center text-orange-500 gap-4">
             <Loader2 className="animate-spin" size={48} />
@@ -53,7 +108,6 @@ export default function RestaurantDetailPage() {
         </div>
     );
 
-    // Trạng thái lỗi hoặc không tìm thấy
     if (!restaurant) return <div className="text-center py-20 font-bold">Không tìm thấy nhà hàng.</div>;
 
     return (
@@ -65,10 +119,11 @@ export default function RestaurantDetailPage() {
                         {/* CỘT TRÁI: HÌNH ẢNH */}
                         <div className="space-y-4">
                             <div className="relative group overflow-hidden rounded-3xl shadow-2xl h-[450px] bg-gray-100">
+                                {/* 3. HIỂN THỊ ẢNH ĐANG CHỌN */}
                                 <img
-                                    src={restaurant.image_urls?.[0] || "/placeholder-restaurant.jpg"}
+                                    src={selectedImage || "/placeholder-restaurant.jpg"}
                                     alt={restaurant.name}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition duration-700"
+                                    className="w-full h-full object-cover transition duration-700 animate-in fade-in"
                                 />
                                 <div className={`absolute top-4 left-4 px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 shadow-md ${restaurant.is_active ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`}>
                                     <div className="w-2 h-2 rounded-full animate-pulse bg-white"></div>
@@ -76,10 +131,20 @@ export default function RestaurantDetailPage() {
                                 </div>
                             </div>
 
+                            {/* 4. LIST ẢNH CON: CLICK ĐỂ THAY ĐỔI ẢNH CHÍNH */}
                             <div className="grid grid-cols-4 gap-4">
                                 {restaurant.image_urls?.map((url: string, index: number) => (
-                                    <div key={index} className="h-24 rounded-2xl overflow-hidden border-2 border-transparent hover:border-orange-500 cursor-pointer transition shadow-sm">
-                                        <img src={url} alt={`Gallery ${index}`} className="w-full h-full object-cover" />
+                                    <div
+                                        key={index}
+                                        onClick={() => setSelectedImage(url)} // Cập nhật state khi click
+                                        className={`h-24 rounded-2xl overflow-hidden border-2 transition shadow-sm cursor-pointer ${selectedImage === url ? 'border-orange-500' : 'border-transparent hover:border-orange-200'
+                                            }`}
+                                    >
+                                        <img
+                                            src={url}
+                                            alt={`Gallery ${index}`}
+                                            className={`w-full h-full object-cover transition duration-300 ${selectedImage === url ? 'opacity-100' : 'opacity-60 hover:opacity-100'}`}
+                                        />
                                     </div>
                                 ))}
                             </div>
@@ -190,141 +255,74 @@ export default function RestaurantDetailPage() {
             )}
 
             {/* GIAI ĐOẠN ĐẶT BÀN (STEP 1, 2, 3) */}
+            {/* GIAI ĐOẠN ĐẶT BÀN */}
             {step > 0 && (
                 <div className="max-w-3xl mx-auto py-10">
-                    {/* PROGRESS BAR (GIỐNG HOTEL) */}
+                    {/* Progress Bar */}
                     <div className="flex justify-between mb-12 relative">
                         {[1, 2, 3].map((s) => (
                             <div key={s} className="z-10 flex flex-col items-center gap-2">
-                                <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all duration-500 shadow-md ${step >= s ? 'bg-orange-600 text-white scale-110' : 'bg-gray-200 text-gray-500'}`}>
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all duration-500 shadow-md ${step >= s ? 'bg-orange-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
                                     {step > s ? <CheckCircle2 size={24} /> : s}
                                 </div>
-                                <span className={`text-[10px] font-bold uppercase tracking-tighter ${step >= s ? 'text-orange-600' : 'text-gray-400'}`}>
-                                    {s === 1 ? "Thời gian" : s === 2 ? "Ghi chú" : "Xác nhận"}
-                                </span>
                             </div>
                         ))}
-                        {/* Đường nối giữa các bước */}
                         <div className="absolute top-6 left-0 w-full h-1 bg-gray-100 -z-0">
-                            <div
-                                className="h-full bg-orange-600 transition-all duration-500"
-                                style={{ width: `${(step - 1) * 50}%` }}
-                            ></div>
+                            <div className="h-full bg-orange-600 transition-all duration-500" style={{ width: `${(step - 1) * 50}%` }}></div>
                         </div>
                     </div>
 
-                    {/* NỘI DUNG CÁC BƯỚC */}
                     <div className="min-h-[400px]">
-                        {/* Step 1: Chọn ngày & giờ */}
+                        {/* Step 1: Date & Time & Guests */}
                         {step === 1 && (
                             <div className="space-y-8 animate-in slide-in-from-right-10">
-                                <div className="text-center">
-                                    <h2 className="text-3xl font-black italic text-gray-900">Thời gian dùng bữa</h2>
-                                    <p className="text-gray-500 mt-2">Hãy chọn thời điểm tuyệt vời nhất để thưởng thức ẩm thực</p>
-                                </div>
-
                                 <div className="grid grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-bold flex items-center gap-2 text-gray-700"><Calendar size={16} /> Ngày đến</label>
-                                        <input type="date" className="w-full border-2 border-gray-100 p-4 rounded-2xl focus:border-orange-500 outline-none transition shadow-sm" value={formData.bookingDate} onChange={(e) => updateForm("bookingDate", e.target.value)} />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-bold flex items-center gap-2 text-gray-700"><Clock size={16} /> Giờ đến</label>
-                                        <input type="time" className="w-full border-2 border-gray-100 p-4 rounded-2xl focus:border-orange-500 outline-none transition shadow-sm" value={formData.bookingTime} onChange={(e) => updateForm("bookingTime", e.target.value)} />
-                                    </div>
+                                    <input type="date" className="p-4 border-2 rounded-2xl" value={formData.bookingDate} onChange={(e) => updateForm("bookingDate", e.target.value)} />
+                                    <input type="time" className="p-4 border-2 rounded-2xl" value={formData.bookingTime} onChange={(e) => updateForm("bookingTime", e.target.value)} />
                                 </div>
-
-                                <div className="space-y-4">
-                                    <label className="text-sm font-bold flex items-center gap-2 text-gray-700"><Users size={16} /> Số lượng khách đi cùng</label>
-                                    <div className="grid grid-cols-5 gap-3">
-                                        {[2, 4, 6, 8, 10].map(num => (
-                                            <button
-                                                key={num}
-                                                onClick={() => updateForm("guests", num)}
-                                                className={`py-4 rounded-2xl border-2 font-black transition-all flex flex-col items-center justify-center gap-1 ${formData.guests === num ? 'border-orange-600 bg-orange-50 text-orange-600 shadow-inner' : 'border-gray-100 hover:bg-gray-50 text-gray-400'}`}
-                                            >
-                                                <span className="text-lg">{num === 10 ? "10+" : num}</span>
-                                                <span className="text-[9px] uppercase">Khách</span>
-                                                {formData.guests === num && <CheckCircle2 size={12} className="absolute top-2 right-2" />}
-                                            </button>
-                                        ))}
-                                    </div>
-                                    <p className="text-xs text-center text-gray-400 italic mt-2">Vui lòng liên hệ nhà hàng nếu đoàn đi trên 20 người</p>
+                                <div className="grid grid-cols-5 gap-3">
+                                    {[2, 4, 6, 8, 10].map(num => (
+                                        <button key={num} onClick={() => updateForm("guests", num)} className={`py-4 border-2 rounded-2xl ${formData.guests === num ? 'border-orange-600 bg-orange-50' : ''}`}>{num} Khách</button>
+                                    ))}
                                 </div>
                             </div>
                         )}
 
-                        {/* Step 2: Ghi chú & Yêu cầu */}
+                        {/* Step 2: Thông tin liên hệ & Ghi chú */}
                         {step === 2 && (
-                            <div className="space-y-6 animate-in slide-in-from-right-10">
-                                <h2 className="text-2xl font-black flex items-center gap-2 text-gray-900">
-                                    <MessageSquare className="text-orange-600" /> Yêu cầu cho nhà hàng
-                                </h2>
-                                <textarea
-                                    placeholder="Ví dụ: Bàn gần cửa sổ, tổ chức sinh nhật, dị ứng hải sản..."
-                                    className="w-full border-2 border-gray-100 p-6 rounded-3xl h-40 focus:border-orange-500 outline-none transition text-lg shadow-sm"
-                                    value={formData.specialRequest}
-                                    onChange={(e) => updateForm("specialRequest", e.target.value)}
-                                ></textarea>
-                                <div className="p-4 bg-orange-50 rounded-2xl flex gap-3 text-orange-800 text-sm border border-orange-100">
-                                    <Info className="shrink-0 mt-0.5" />
-                                    <span>Ghi chú của bạn sẽ giúp nhà hàng chuẩn bị không gian chu đáo hơn. Bạn có thể chọn món trực tiếp khi đến quán.</span>
+                            <div className="space-y-4 animate-in slide-in-from-right-10">
+                                <h2 className="text-xl font-bold">Thông tin liên hệ</h2>
+                                <input type="text" placeholder="Họ tên người đặt" className="w-full p-4 border-2 rounded-xl" value={formData.guest_full_name} onChange={(e) => updateForm("guest_full_name", e.target.value)} />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <input type="email" placeholder="Email" className="p-4 border-2 rounded-xl" value={formData.guest_email} onChange={(e) => updateForm("guest_email", e.target.value)} />
+                                    <input type="tel" placeholder="Số điện thoại" className="p-4 border-2 rounded-xl" value={formData.guest_phone} onChange={(e) => updateForm("guest_phone", e.target.value)} />
                                 </div>
+                                <textarea placeholder="Yêu cầu đặc biệt..." className="w-full p-4 border-2 rounded-xl h-32" value={formData.specialRequest} onChange={(e) => updateForm("specialRequest", e.target.value)}></textarea>
                             </div>
                         )}
 
                         {/* Step 3: Xác nhận */}
                         {step === 3 && (
-                            <div className="space-y-6 animate-in slide-in-from-right-10">
-                                <div className="text-center">
-                                    <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <CheckCircle2 size={40} />
-                                    </div>
-                                    <h2 className="text-3xl font-black text-gray-900">Xác nhận thông tin</h2>
-                                </div>
-
-                                <div className="bg-white p-8 rounded-3xl border-2 border-orange-100 shadow-xl shadow-orange-900/5 space-y-4">
-                                    <div className="flex justify-between items-center border-b pb-4">
-                                        <span className="text-gray-500 font-medium">Nhà hàng:</span>
-                                        <span className="font-bold text-lg text-gray-900">{restaurant.name}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center border-b pb-4">
-                                        <span className="text-gray-500 font-medium">Thời gian:</span>
-                                        <span className="font-bold text-orange-600 bg-orange-50 px-3 py-1 rounded-lg">
-                                            {formData.bookingDate} | {formData.bookingTime}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between items-center border-b pb-4">
-                                        <span className="text-gray-500 font-medium">Số lượng khách:</span>
-                                        <div className="flex items-center gap-2 font-bold text-gray-900">
-                                            <Users size={18} className="text-orange-500" />
-                                            <span>{formData.guests} người lớn</span>
-                                        </div>
-                                    </div>
-                                    <div className="pt-2">
-                                        <span className="text-gray-500 font-medium block mb-2">Lời nhắn đặc biệt:</span>
-                                        <p className="italic text-gray-700 bg-gray-50 p-4 rounded-xl border border-gray-100">
-                                            {formData.specialRequest || "Không có yêu cầu đặc biệt"}
-                                        </p>
-                                    </div>
-                                </div>
+                            <div className="p-8 bg-gray-50 rounded-3xl border-2 border-dashed space-y-4">
+                                <p><strong>Nhà hàng:</strong> {restaurant.name}</p>
+                                <p><strong>Thời gian:</strong> {formData.bookingDate} | {formData.bookingTime}</p>
+                                <p><strong>Số khách:</strong> {formData.guests}</p>
+                                <p><strong>Người đặt:</strong> {formData.guest_full_name}</p>
                             </div>
                         )}
-                        {/* Buttons Navigation */}
-                        <div className="flex justify-between mt-12">
-                            <button onClick={() => setStep(step - 1)} className="flex items-center gap-2 px-8 py-4 font-bold text-gray-400 hover:text-gray-600 transition">
-                                <ArrowLeft size={20} /> Quay lại
-                            </button>
-                            <button
-                                onClick={() => step === 3 ? alert("Đặt bàn thành công!") : setStep(step + 1)}
-                                className="bg-gray-900 text-white px-12 py-4 rounded-2xl font-bold shadow-xl active:scale-95 transition hover:bg-black"
-                            >
-                                {step === 3 ? "Hoàn tất đặt bàn" : "Tiếp theo"}
-                            </button>
-                        </div>
+                    </div>
+
+                    <div className="flex justify-between mt-12">
+                        <button onClick={() => setStep(step - 1)} className="px-8 py-4 font-bold text-gray-400">Quay lại</button>
+                        <button
+                            onClick={() => step === 3 ? handleBooking() : setStep(step + 1)}
+                            className="bg-orange-600 text-white px-12 py-4 rounded-2xl font-bold shadow-lg"
+                        >
+                            {step === 3 ? "Xác nhận đặt bàn" : "Tiếp theo"}
+                        </button>
                     </div>
                 </div>
-            )};
+            )}
         </div>
-    )
+    );
 }

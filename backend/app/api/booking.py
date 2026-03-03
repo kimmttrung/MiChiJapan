@@ -177,3 +177,30 @@ async def delete_booking(
     except Exception as e:
         await db.rollback()
         raise HTTPException(status_code=500, detail="Lỗi hệ thống khi xóa dữ liệu.")
+
+# --- XEM CHI TIẾT MỘT ĐƠN ĐẶT PHÒNG KHÁCH SẠN ---
+@router.get("/{booking_id}", response_model=MyBookingResponse)
+async def get_hotel_booking_detail(
+    booking_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    # Lấy booking kèm hotel
+    query = (
+        select(HotelBooking)
+        .where(HotelBooking.id == booking_id)
+        .options(selectinload(HotelBooking.hotel))
+    )
+    
+    result = await db.execute(query)
+    booking = result.scalars().first()
+
+    if not booking:
+        raise HTTPException(status_code=404, detail="Không tìm thấy đơn đặt phòng.")
+
+    # Kiểm tra quyền: Chỉ admin hoặc người đặt mới được xem
+    # (Dùng role == "admin" như đã thống nhất ở các bước trước)
+    if current_user.role != "admin" and booking.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Bạn không có quyền xem đơn này.")
+
+    return booking

@@ -14,6 +14,12 @@ export default function HotelDetailPage() {
     const router = useRouter();
     const [hotel, setHotel] = useState<any>(null);
     const [step, setStep] = useState(0);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    useEffect(() => {
+        if (hotel && hotel.image_urls?.length > 0) {
+            setSelectedImage(hotel.image_urls[0]);
+        }
+    }, [hotel]);
 
     // 1. Quản lý dữ liệu Form
     const [formData, setFormData] = useState({
@@ -114,6 +120,8 @@ export default function HotelDetailPage() {
         }
     };
 
+
+
     if (!hotel) return <div className="p-10 text-center">Đang tải...</div>;
 
     return (
@@ -124,24 +132,34 @@ export default function HotelDetailPage() {
                     <div className="grid md:grid-cols-2 gap-8">
                         {/* PHẦN HÌNH ẢNH - GALLERY */}
                         <div className="space-y-4">
-                            <div className="relative group overflow-hidden rounded-3xl shadow-lg h-[400px]">
+                            {/* ẢNH CHÍNH (Hiển thị ảnh đang được chọn) */}
+                            <div className="relative group overflow-hidden rounded-3xl shadow-lg h-[400px] bg-gray-100">
                                 <img
-                                    src={hotel.image_urls[0]}
+                                    src={selectedImage || hotel.image_urls[0]} // Sử dụng selectedImage
                                     alt={hotel.name}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition duration-700"
+                                    className="w-full h-full object-cover transition duration-700 animate-in fade-in"
                                 />
-                                {/* Badge Trạng thái (isActive) */}
+                                {/* Badge Trạng thái */}
                                 <div className={`absolute top-4 left-4 px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 shadow-md ${hotel.is_active ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
                                     <div className={`w-2 h-2 rounded-full animate-pulse bg-white`}></div>
                                     {hotel.is_active ? "Đang hoạt động" : "Tạm ngưng"}
                                 </div>
                             </div>
 
-                            {/* Hiển thị tất cả ảnh trong Array */}
+                            {/* DANH SÁCH ẢNH CON (Click để thay đổi ảnh chính) */}
                             <div className="grid grid-cols-4 gap-4">
                                 {hotel.image_urls.map((url: string, index: number) => (
-                                    <div key={index} className="h-20 rounded-xl overflow-hidden border-2 border-transparent hover:border-blue-500 cursor-pointer transition">
-                                        <img src={url} alt={`Gallery ${index}`} className="w-full h-full object-cover" />
+                                    <div
+                                        key={index}
+                                        onClick={() => setSelectedImage(url)} // Cập nhật state khi click
+                                        className={`h-20 rounded-xl overflow-hidden border-2 transition cursor-pointer ${selectedImage === url ? 'border-blue-600' : 'border-transparent hover:border-blue-300'
+                                            }`}
+                                    >
+                                        <img
+                                            src={url}
+                                            alt={`Gallery ${index}`}
+                                            className={`w-full h-full object-cover transition duration-300 ${selectedImage === url ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`}
+                                        />
                                     </div>
                                 ))}
                             </div>

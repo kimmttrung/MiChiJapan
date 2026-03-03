@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, Float, DateTime
+from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, Float, DateTime, Date, Time
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -57,3 +57,31 @@ class Restaurant(Base):
     # Link tới bảng trung gian
     cuisines_data = relationship("RestaurantCuisine", back_populates="restaurant", cascade="all, delete-orphan")
     region = relationship("Region", back_populates="restaurants")
+    bookings = relationship("RestaurantBooking", back_populates="restaurant", cascade="all, delete-orphan")
+
+# 4. BỔ SUNG: Bảng Đặt bàn Nhà hàng (Restaurant Booking)
+class RestaurantBooking(Base):
+    __tablename__ = "restaurant_bookings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    restaurant_id = Column(Integer, ForeignKey("restaurants.id", ondelete="CASCADE"))
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+
+    # Thông tin khách hàng
+    guest_full_name = Column(String(255), nullable=False)
+    guest_email = Column(String(255), nullable=False)
+    guest_phone = Column(String(50), nullable=False)
+
+    # Chi tiết thời gian
+    booking_date = Column(Date, nullable=False)
+    booking_time = Column(Time, nullable=False)
+    guests = Column(Integer, default=2)
+    special_request = Column(Text, nullable=True)
+
+    # Trạng thái
+    status = Column(String(50), default="pending") # pending, confirmed, cancelled
+    created_at = Column(DateTime, server_default=func.now())
+
+    # Relationships
+    restaurant = relationship("Restaurant", back_populates="bookings")
+    user = relationship("User") # Đảm bảo bạn đã import User hoặc để chuỗi "User"
